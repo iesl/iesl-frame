@@ -1,0 +1,95 @@
+-import play.api.mvc._
+-import play.api.data._
+-import play.api.data.Forms._
+-import play.api.i18n.Messages
+-import views.html.{helper=>h}
+-import securesocial.core.providers.utils.RoutesHelper
+-import securesocial.core.Registry
+-import securesocial.core.IdentityProvider
+-import securesocial.core.providers.UsernamePasswordProvider
+-import securesocial.core.AuthenticationMethod._
+
+- import h.twitterBootstrap._
+
+-# -implicit val bootstrapFormFieldConstructor = h.twitterBootstrap.twitterBootstrapField
+-# implicit val twitterBootstrapField = new h.FieldConstructor { def apply(elts: h.FieldElements) = views.html.myBootstrapFieldConstructor(elts) }
+
+-@ val request: RequestHeader
+-@ val loginForm: Form[(String, String)]
+-@ val signupForm: Form[String]
+-@ val forgotPasswordForm: Form[String]
+
+- implicit val req = request
+
+-@ val authProviders: Iterable[securesocial.core.IdentityProvider]
+-@ val errorMsg: Option[String] = None
+- def capitalize(s: String) = { s(0).toUpper + s.substring(1, s.length).toLowerCase }
+- attributes("hideLoginButton") = true
+
+.main
+  .row-fluid
+    .span4.offset2.well
+      h3 Log in with a third-party provider
+      em 
+        | Use your Google account to log in. 
+      hr
+      =for(p <- authProviders if p.authMethod != UserPassword)
+        - val imageUrl = "/assets/images/providers/%s.png".format(p.ssId)
+        p
+          a(href="/authenticate/#{p.ssId}")
+            img(src="#{imageUrl}")
+            | Log in with
+            = capitalize(p.ssId)
+
+    .span4.well
+      h3 Log in with a local account
+      em 
+        | You may create a local account if you prefer not to authenticate yourself through another provider
+      hr
+
+
+      form.form-horizontal(action="/authenticate/userpass" method="POST")
+        .fieldset
+          .control-group
+            .controls
+              .help-block 
+                h4 Sign In
+              = unescape(h.inputText( loginForm("username"), '_label -> "", 'placeholder -> "Email", 'class -> "input", '_showConstraints -> false))
+              = unescape(h.inputPassword( loginForm("password"), '_label -> "", 'placeholder -> "Password", 'class -> "input", '_showConstraints -> false ))
+          .control-group
+            .controls
+              button.btn(type="submit") Sign In
+
+
+      hr
+
+      form.form-horizontal(action="/signup" method="POST")
+        fieldset  
+          .control-group
+            .controls
+              .help-block 
+                h4 Sign Up
+              .help-block
+                | Create a new account by providing an email address, and we will send you instructions to complete the signup process.
+              = unescape(h.inputText(signupForm("email"), '_label -> "", 'placeholder -> "email", 'class -> "input", '_showConstraints -> false))
+        fieldset  
+          .control-group
+            .controls
+              button.btn(type="submit") Sign Up
+
+      hr
+
+      form.form-horizontal(action="/reset" method="POST")
+        fieldset  
+          .control-group
+            .controls
+              .help-block 
+                h4 Forgot your password?
+              .help-block Send yourself an email to reset your password.
+              = unescape(h.inputText(forgotPasswordForm("email"), '_label -> "", 'placeholder -> "email", 'class -> "input", '_showConstraints -> false))
+        .control-group
+          .controls
+            button.btn(type="submit") Send Email
+
+
+
