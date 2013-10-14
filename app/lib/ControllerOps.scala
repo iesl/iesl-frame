@@ -7,24 +7,20 @@ import play.api.mvc._
 import securesocial.core._
 
 import lib.scalateor.ScalateControllerSupport
+import scala.collection.GenTraversable
 
-trait Email {
-  def email: String
-  def verified: Boolean
-  override def toString = email + "(verified=" + verified + ")"
-}
-
-trait User[T] {
+trait IFUser[T] {
   def id: T
-  def emails: Traversable[Email]
 }
 
-trait UserStore[T] {
-  def get(id:T) : Option[User[T]]
-  def getByStringId(id:String) : Option[User[T]]
+trait IFUserStore[T] {
+  def get(id:T) : Option[IFUser[T]]
+  def getByStringId(id:String) : Option[IFUser[T]]
+  def findByEmail(s: String): GenTraversable[IFUser[T]]
+  def findBySubstring(s: String): GenTraversable[IFUser[T]]
 }
 
-trait LinkedAccount[T] {
+trait IFLinkedAccount[T] {
   def id: T
   def userId: T
   def providerUserId: String
@@ -33,8 +29,8 @@ trait LinkedAccount[T] {
 
 }
 
-trait LinkedAccountStore[T] {
-  def findByProviderId(s: String, s1: String) : Option[LinkedAccount[T]]
+trait IFLinkedAccountStore[T] {
+  def findByProviderId(s: String, s1: String) : Option[IFLinkedAccount[T]]
 
 }
 
@@ -45,20 +41,15 @@ object UserControllerOps {
 trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateControllerSupport with Logging {
 import UserControllerOps._
   
-  def userStore : UserStore[T]
-  def linkedAccountStore : LinkedAccountStore[T]
-  def authorizedToImpersonate(user: User[T]): Boolean = {
-    val superUsers = "adamchandra@gmail.com soergel@cs.umass.edu".split(" ").toSet
-    val userEmails = user.emails.filter(_.verified).map(_.email).toSet
-    !superUsers.intersect(userEmails).isEmpty
-  }
+  def userStore : IFUserStore[T]
+  def linkedAccountStore : IFLinkedAccountStore[T]
+  def authorizedToImpersonate(user: IFUser[T]): Boolean 
 
-
-  def impersonate(user: User[T]): (String, String) =
+  def impersonate(user: IFUser[T]): (String, String) =
     (ImpersonateUserKey -> user.id.toString)
 
 
-  def maybeImpersonateAction[A](ouser: Option[User[T]])(f: Request[A] => Option[User[T]] => Result)(implicit req:
+  def maybeImpersonateAction[A](ouser: Option[IFUser[T]])(f: Request[A] => Option[IFUser[T]] => Result)(implicit req:
   Request[A]): Result = {
     (for {
       mainUser <- ouser
@@ -108,7 +99,7 @@ import UserControllerOps._
     }
     */
 
-  def UserAction(f: Request[AnyContent] => Option[User[T]] => Result): Action[AnyContent] =
+  def UserAction(f: Request[AnyContent] => Option[IFUser[T]] => Result): Action[AnyContent] =
     SecuredAction {
       implicit req => {
         try {
@@ -128,7 +119,7 @@ import UserControllerOps._
 
   def UserAction[A](
                      bparser: BodyParser[A]
-                     )(f: Request[A] => Option[User[T]] => Result) = SecuredAction(
+                     )(f: Request[A] => Option[IFUser[T]] => Result) = SecuredAction(
     ajaxCall = false,
     authorize = None,
     p = bparser
@@ -140,7 +131,7 @@ import UserControllerOps._
     }
   }
 
-  def OptUserAction(f: Request[AnyContent] => Option[User[T]] => Result) = UserAwareAction {
+  def OptUserAction(f: Request[AnyContent] => Option[IFUser[T]] => Result) = UserAwareAction {
     implicit req =>
       logger.trace(req.toString())
       val result = maybeImpersonateAction(ouserFromSSocialUser)(f)(req)
@@ -148,18 +139,18 @@ import UserControllerOps._
   }
 
 
-  def userFromSSocialUser(implicit req: SecuredRequest[_]): Option[User[T]] = {
+  def userFromSSocialUser(implicit req: SecuredRequest[_]): Option[IFUser[T]] = {
     val ssuser = req.user
     for {
-      la :LinkedAccount[T] <- linkedAccountStore.findByProviderId(ssuser.userIdFromProvider.providerId, ssuser.userIdFromProvider.authId)
+      la :IFLinkedAccount[T] <- linkedAccountStore.findByProviderId(ssuser.userIdFromProvider.providerId, ssuser.userIdFromProvider.authId)
       u <- userStore.get(la.userId)
     } yield u
   }
 
-  def ouserFromSSocialUser(implicit req: RequestWithUser[_]): Option[User[T]] = {
+  def ouserFromSSocialUser(implicit req: RequestWithUser[_]): Option[IFUser[T]] = {
     for {
       ssuser <- req.user
-      la:LinkedAccount[T]  <- linkedAccountStore.findByProviderId(ssuser.userIdFromProvider.providerId, ssuser.userIdFromProvider.authId)
+      la:IFLinkedAccount[T]  <- linkedAccountStore.findByProviderId(ssuser.userIdFromProvider.providerId, ssuser.userIdFromProvider.authId)
       u <- userStore.get(la.userId)
     } yield u
   }
