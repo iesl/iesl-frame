@@ -1,5 +1,5 @@
 !!!5
-- import nav.nav.assetsVersion
+- import lib.IeslFrameInfo.assetsVersion
 
 -@ val body: String
 -@ val headScripts: String = ""
