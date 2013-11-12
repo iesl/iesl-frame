@@ -1,5 +1,6 @@
 package lib
 
+import _root_.java.util.UUID
 import play.api.Application
 import com.typesafe.scalalogging.slf4j.Logging
 
@@ -24,7 +25,7 @@ import ControllerOps._
 import lib.scalateor.ScalateControllerSupport
 
 class SecureSocialViews(application: Application) extends TemplatesPlugin with ScalateControllerSupport {
- def renderHtml(viewname:String, args:(Symbol, Any)*)(implicit request: RequestHeader): Html = {
+ def renderHtml(viewname:String, args:(Symbol, Any)*)(implicit request: RequestHeader, user:Option[IFUser[UUID]]=None): Html = {
    Html(
      (s"${viewname}.jade").template.withSymAttribs(
        args:_*

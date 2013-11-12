@@ -8,6 +8,10 @@ import play.api.http.Status._
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json._
 import play.api.mvc._
+import lib.IFUser
+import java.util.UUID
+
+//import org.fusesource.scalate.ScalateSupportApp.engineFactory
 
 
 trait NotRunningPlayConfig extends ScalateConfig {
@@ -35,7 +39,6 @@ trait RunningPlayConfig extends NotRunningPlayConfig {
   override def classloader: java.lang.ClassLoader = Play.classloader
 }
 
-
 object engineFactory extends EngineContainer with RunningPlayConfig {
   override val layoutMode = false
   override val mode: ScalateMode = DevMode // play.mode match ...
@@ -53,9 +56,45 @@ trait ConfiguredScalateEngine {
 
   // TODO Fix this!!!!
   implicit def customEngine = templateEngine.asInstanceOf[CustomTemplateEngine]
-  
+
 }
 
+/*
+class EngineFactory(_paths : Seq[File]) extends EngineContainer with RunningPlayConfig {
+  override val layoutMode = false
+  override val mode: ScalateMode = DevMode // todo play.mode match ...
+  def configurator: EngineLike => Unit = {e => ()}
+
+  val templateEngine : EngineLike = configureEngine { eng =>
+  }
+
+  override def templateRootPaths = _paths
+}
+
+object GlobalEngine {
+  private var _engine : EngineLike = null
+  def setEngine(e:EngineLike) { _engine = e}
+  def apply() = _engine 
+}
+
+trait ConfiguredScalateEngine {
+  
+  
+  implicit def templateEngine = {
+    //engineFactory.templateEngine.reportConfig()
+    //engineFactory.templateEngine
+
+    GlobalEngine().reportConfig()
+    GlobalEngine()
+  }
+/*
+  // TODO Fix this!!!!
+  implicit def customEngine = templateEngine.asInstanceOf[CustomTemplateEngine]
+  */
+  //implicit def customEngine : CustomTemplateEngine
+
+}
+*/
 trait ScalateTemplateImplicits {
 
   implicit def stringToConfig(uri:String)(
@@ -158,3 +197,30 @@ object ScalateApp {
   }
 
 }
+
+/*
+object ScalateApp {
+  import java.io.File
+  private class Factory(_paths: Seq[File]) extends ScalateEngineFactory with NotRunningPlayConfig {
+    // todo abstract app directory.  For now, assume working directory is the app.
+    // override def getFile(s:String): File = new File(new File("."), s)
+    override def classloader: java.lang.ClassLoader = Thread.currentThread.getContextClassLoader()
+
+    override val layoutMode = false
+    override val mode: ScalateMode = PrecompileMode
+
+    override def templateRootPaths = _paths
+    
+    val templateEngine = configureEngine { eng =>
+    }
+  }
+
+
+  def main(args: Array[String]) {
+
+    val engine = new Factory(args.map(new File(_))).templateEngine
+    engine.precompileAll()
+  }
+
+}
+*/
