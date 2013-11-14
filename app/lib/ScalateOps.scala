@@ -28,6 +28,7 @@ trait Scalate  {
     scalateEngine.model(it, view, symsToStrings(args):_*)
   }
 
+  /*
   def viewJson(it:AnyRef, view:String="index")(args: (Symbol, Any)*): JsValue = {
     val html = viewHtml(it,view)(args:_*)
     toJson(Map("html" -> html))
@@ -48,7 +49,7 @@ trait Scalate  {
   }
   
   def redirJson(url:String) = toJson(Map("location" -> url))
-
+*/
 }
 
 

@@ -21,7 +21,6 @@ trait PlayEmailerContext extends EmailerContext {
   }
 
   def sendEmail(subject: String, recipient: String, body: String, from:Option[String]=None, asHtml: Boolean=false) {
-    import play.api.libs.concurrent.Akka
     
     import com.typesafe.plugin._
 
