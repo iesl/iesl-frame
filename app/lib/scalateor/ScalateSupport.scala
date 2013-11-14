@@ -130,27 +130,38 @@ trait ScalateControllerImplicits {
     implicit eng: CustomTemplateEngine, request: RequestHeader, layout: ScalateLayout, userOpt: Option[IFUser[UUID]] = None
     ) = new {
     def template: ViewConfig = {
+
+      val baseAttrs : Seq[(String, Any)] = Seq(
+        "userOpt" -> userOpt,
+        "sessionMessages" -> SessionMessage.get)
+
+      val attrs = if (userOpt.isDefined) baseAttrs :+ ("user" -> userOpt.get) else baseAttrs
+
       val v = ViewConfig(uri)
         .withEngine(eng)
         .withRequestHeader(request)
         .withLayout(layout.uri)
-        .withAttribs("userOpt" -> userOpt)
-        .withAttribs("sessionMessages" -> SessionMessage.get)
-      if (userOpt.isDefined) v.withAttribs("user" -> userOpt.get) else v
+        .withAttribs(attrs:_*)
+      v
     }
   }
-  
+
   implicit def anyRefToConfigOps(model: AnyRef)(
     implicit eng: CustomTemplateEngine, request: RequestHeader, layout: ScalateLayout, userOpt: Option[IFUser[UUID]] = None
     ) = new {
     def template: ModelConfig = {
+      val baseAttrs : Seq[(String, Any)] = Seq(
+        "userOpt" -> userOpt,
+        "sessionMessages" -> SessionMessage.get)
+
+      val attrs = if (userOpt.isDefined) baseAttrs :+ ("user" -> userOpt.get) else baseAttrs
+      
       val v = ModelConfig(model)
         .withEngine(eng)
         .withRequestHeader(request)
         .withLayout(layout.uri)
-        .withAttribs("userOpt" -> userOpt)
-        .withAttribs("sessionMessages" -> SessionMessage.get)
-      if (userOpt.isDefined) v.withAttribs("user" -> userOpt.get) else v
+        .withAttribs(attrs:_*)
+      v
     }
 
   }
