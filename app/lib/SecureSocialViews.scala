@@ -23,6 +23,7 @@ import securesocial.core._
 import ControllerOps._
 
 import lib.scalateor.ScalateControllerSupport
+import status.{SessionMessage, Warning}
 
 class SecureSocialViews(application: Application) extends TemplatesPlugin with ScalateControllerSupport {
  def renderHtml(viewname:String, args:(Symbol, Any)*)(implicit request: RequestHeader, user:Option[IFUser[UUID]]=None): Html = {
@@ -48,7 +49,8 @@ class SecureSocialViews(application: Application) extends TemplatesPlugin with S
     renderHtml("auth/login",
       'request -> request,
       'authProviders -> Registry.providers.all().values, 
-      'flashMessage -> (msg.map {Messages.get(_)}),
+      //'flashMessage -> (msg.map {Messages.get(_)}),  FLASH
+      'sessionMessages -> msg.map((m:String)=>Seq(new SessionMessage(Warning, m))).getOrElse(Seq.empty),
       'loginForm -> form,
       'signupForm -> Registration.startForm,
       'forgotPasswordForm -> Registration.startForm
