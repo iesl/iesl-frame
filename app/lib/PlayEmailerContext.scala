@@ -6,9 +6,9 @@ import play.api.mvc.RequestHeader
 import edu.umass.cs.iesl.scalacommons.email.EmailerContext
 
 trait PlayEmailerContext extends EmailerContext {
-  import play.api.libs.concurrent.Akka
+  //import play.api.libs.concurrent.Akka
     
-  import com.typesafe.plugin._
+  //import com.typesafe.plugin._
 
   lazy val serverHostname = current.configuration.getString("server.hostname").getOrElse("openreview.net")
   lazy val defaultFromAddress = current.configuration.getString("smtp.from").getOrElse("openreview.net <info@openreview.net>")
