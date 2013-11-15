@@ -39,7 +39,7 @@ object UserControllerOps {
 }
 
 trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateControllerSupport with Logging {
-import UserControllerOps._
+  import UserControllerOps._
   
   def userStore : IFUserStore[T]
   def linkedAccountStore : IFLinkedAccountStore[T]
@@ -49,8 +49,7 @@ import UserControllerOps._
     (ImpersonateUserKey -> user.id.toString)
 
 
-  def maybeImpersonateAction[A](ouser: Option[IFUser[T]])(f: Request[A] => Option[IFUser[T]] => Result)(implicit req:
-  Request[A]): Result = {
+  def maybeImpersonateAction[A](ouser: Option[IFUser[T]])(f: Request[A] => Option[IFUser[T]] => Result)(implicit req: Request[A]): Result = {
     (for {
       mainUser <- ouser
       otherUser <- req.session.get(ImpersonateUserKey)

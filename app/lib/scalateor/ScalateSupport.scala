@@ -44,7 +44,6 @@ trait RunningPlayConfig extends NotRunningPlayConfig {
 }
 
 object engineFactory extends EngineContainer with RunningPlayConfig {
-  override val layoutMode = false
   override val mode: ScalateMode = DevMode
 
   // play.mode match ...
@@ -171,7 +170,6 @@ object ScalateApp {
 
     override def classloader: java.lang.ClassLoader = Thread.currentThread.getContextClassLoader()
 
-    override val layoutMode = false
     override val mode: ScalateMode = PrecompileMode
 
     val templateEngine = configureEngine {
