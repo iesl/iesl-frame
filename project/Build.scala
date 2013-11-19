@@ -35,7 +35,6 @@ object IeslFrameBuild extends Build {
     // until the runtime wiring / cake baking
     "net.openreview" %% "securesocial" % "latest.integration",
 
-
     // todo : figure out which of these are not actually used locally
     // (I had to include them explicitly due to mysterious issues with transitive resolution)
 
