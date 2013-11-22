@@ -55,53 +55,53 @@
     Handlers.prototype.replace = function(e, $el, data) {
         // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
         $($el.data('replace')).each(function( index ) {
-            var $d = $(data.html);
+            var $d = $(data.noselector.html);
             $(this).replaceWith($d);
-            $el.trigger('eldarion-ajax:affected', $d);
+            new Function(data.noselector.js).call($d);
         });
     };
     Handlers.prototype.replaceClosest = function(e, $el, data) {
         $el.closest($el.data('replace-closest')).each(function( index ) {
-            var $d = $(data.html);
+            var $d = $(data.noselector.html);
             $(this).replaceWith($d);
-            $el.trigger('eldarion-ajax:affected', $d);
+            new Function(data.noselector.js).call($d);
         });
     };
     Handlers.prototype.replaceInner = function(e, $el, data) {
         $($el.data('replace-inner')).each(function( index ) {
             var $this = $(this);
-            $this.html(data.html);
-            $el.trigger('eldarion-ajax:affected', $this);
+            $this.html(data.noselector.html);
+            new Function(data.noselector.js).call($this);
         });
     };
     Handlers.prototype.replaceClosestInner = function(e, $el, data) {
         $el.closest($el.data('replace-closest-inner')).each(function( index ) {
             var $this = $(this);
-            $this.html(data.html);
-            $el.trigger('eldarion-ajax:affected', $this);
+            $this.html(data.noselector.html);
+            new Function(data.noselector.js).call($this);
         });
     };
     Handlers.prototype.append = function(e, $el, data) {
         $($el.data('append')).each(function( index ) {
-            var $d = $(data.html);
+            var $d = $(data.noselector.html);
             $(this).append($d);
-            $el.trigger('eldarion-ajax:affected', $d);
+            new Function(data.noselector.js).call($d);
         });
     };
     Handlers.prototype.prepend = function(e, $el, data) {
         $($el.data('prepend')).each(function( index ) {
-            var $d = $(data.html);
+            var $d = $(data.noselector.html);
             $(this).prepend($d);
-            $el.trigger('eldarion-ajax:affected', $d);
+            new Function(data.noselector.js).call($d);
         });
     };
     Handlers.prototype.refresh = function(e, $el) {
         $.each($($el.data('refresh')), function(index, value) {
             $.getJSON($(value).data('refresh-url'), function(data) {
                 $(value).each(function( index ) {
-                    var $d = $(data.html);
+                    var $d = $(data.noselector.html);
                     $(this).replaceWith($d);
-                    $el.trigger('eldarion-ajax:affected', $d);
+                    new Function(data.noselector.js).call($d);
                 });
             });
         });
@@ -110,9 +110,9 @@
         $.each($($el.data('refresh-closest')), function(index, value) {
             $.getJSON($(value).data('refresh-url'), function(data) {
                 $el.closest($(value)).each(function( index ) {
-                    var $d = $(data.html);
+                    var $d = $(data.noselector.html);
                     $(this).replaceWith($d);
-                    $el.trigger('eldarion-ajax:affected', $d);
+                    new Function(data.noselector.js).call($d);
                 });
             });
         });
@@ -121,7 +121,6 @@
         $($el.data('clear')).each(function( index ) {
             var $this = $(this);
             $this.html('');
-            $el.trigger('eldarion-ajax:affected', $this);
         });
     };
     Handlers.prototype.remove = function(e, $el) {
@@ -134,7 +133,6 @@
         $el.closest($el.data('clear-closest')).each(function( index ) {
             var $this = $(this);
             $this.html('');
-            $el.trigger('eldarion-ajax:affected', $this);
         });
     };
     Handlers.prototype.removeClosest = function(e, $el) {
@@ -144,9 +142,9 @@
         if (data.fragments) {
             $.each(data.fragments, function (i, s) {
                 $(i).each(function( index ) {
-                    var $d = $(s);
+                    var $d = $(s.html);
                     $(this).replaceWith($d);
-                    $el.trigger('eldarion-ajax:affected', $d);
+                    new Function(s.js).call($d);
                 });
             });
         }
@@ -154,26 +152,26 @@
             $.each(data['inner-fragments'], function(i, s) {
                 $(i).each(function( index ) {
                     var $this = $(this);
-                    $this.html(s);
-                    $el.trigger('eldarion-ajax:affected', $this);
+                    $this.html(s.html);
+                    new Function(s.js).call($this);
                 });
             });
         }
         if (data['append-fragments']) {
             $.each(data['append-fragments'], function(i, s) {
                 $(i).each(function( index ) {
-                    var $d = $(s);
+                    var $d = $(s.html);
                     $(this).append($d);
-                    $el.trigger('eldarion-ajax:affected', $d);
+                    new Function(s.js).call($d);
                 });
             });
         }
         if (data['prepend-fragments']) {
             $.each(data['prepend-fragments'], function(i, s) {
                 $(i).each(function( index ) {
-                    var $d = $(s);
+                    var $d = $(s.html);
                     $(this).append($d);
-                    $el.trigger('eldarion-ajax:affected', $d);
+                    new Function(s.js).call($d);
                 });
             });
         }

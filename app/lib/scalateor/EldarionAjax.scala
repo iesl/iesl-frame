@@ -16,7 +16,7 @@ object EldarionAjax {
 
   //implicit def toAjaxResponseHtml(v: EldarionAjaxViewable) = EldarionAjaxResponseHtml(v)
 
-  implicit def view(it: AnyRef) = EldarionAjaxViewable(it, "index")
+  implicit def view(it: AnyRef) = EldarionAjaxViewable(it, "index", "")
 }
 
 sealed trait EldarionAjaxFragmentPosition
@@ -29,17 +29,27 @@ case object Prepend extends EldarionAjaxFragmentPosition
 
 case object Append extends EldarionAjaxFragmentPosition
 
+/**
+ * Anything that can be rendered as html, and possibly highlighted
+ */
 trait EldarionAjaxResponseElement {
   //extends RenderableTemplateConfig{
-  def render(): String
+  def render(): JsValue
 }
 
-case class EldarionAjaxViewable(it: AnyRef, view: String, args: (Symbol, Any)*)  extends EldarionAjaxResponseElement {
-  def ~(v: String): EldarionAjaxViewable = EldarionAjaxViewable(it, v, args: _*)
+/**
+ * A wrapper for a domain object that can be rendered to html with a given view.  The javascript hook can be used for highlighting or whatever else.
+ */
+case class EldarionAjaxViewable(it: AnyRef, view: String, javascript:String, args: (Symbol, Any)*)  extends EldarionAjaxResponseElement {
+  def ~(v: String): EldarionAjaxViewable = EldarionAjaxViewable(it, v, javascript, args: _*)
 
-  def sub(a: (Symbol, Any)*) = EldarionAjaxViewable(it, view, a: _*)
+  def highlight:EldarionAjaxViewable = EldarionAjaxViewable(it, view, javascript + "this.highlight();", args: _*)
 
-  def render(): String = ScalateOps.viewHtml(it, view)(args: _*)
+  def sub(a: (Symbol, Any)*):EldarionAjaxViewable  = EldarionAjaxViewable(it, view, javascript, a: _*)
+  
+  def exec(js:String):EldarionAjaxViewable = EldarionAjaxViewable(it, view, js, args: _*)
+
+  def render(): JsValue = toJson(Map("html"->ScalateOps.viewHtml(it, view)(args: _*),"js"->javascript))
 }
 
 case class EldarionAjaxSelector(selector: String) {
@@ -71,9 +81,8 @@ case class EldarionAjaxSelector(selector: String) {
    def atEnd(s:String) = AjaxResponseFragment(s,Append,v)*/
 }*/
 
-case class EldarionAjaxResponseFragment(selector: String, pos: EldarionAjaxFragmentPosition, v: EldarionAjaxViewable) extends EldarionAjaxResponseElement {
-  def render(): String = v.render
-
+case class EldarionAjaxResponseFragment(selector: String, pos: EldarionAjaxFragmentPosition, v: EldarionAjaxViewable, highlight:Boolean = false) extends EldarionAjaxResponseElement {
+  def render(): JsValue = v.render
 }
 
 
@@ -104,20 +113,19 @@ trait EldarionAjaxResponseEncodings {
   // use GenTraversable instead of GenSet because GenSet is not covariant (!?)
   case class EldarionAjaxResponse(elements: GenTraversable[EldarionAjaxResponseElement]) {
     // constraint that there can be only one html is not enforced by type; if multiple are provided, one is picked.
-    // this hacky filter finds 
-    def html: Option[String] = elements.find(_.isInstanceOf[EldarionAjaxViewable]).headOption.map(_.render()) 
+    def noselector: Option[JsValue] = elements.find(_.isInstanceOf[EldarionAjaxViewable]).headOption.map(e=>e.render())
     
     val replaceFragments: Map[String, JsValue] = elements.collect({
-      case e: EldarionAjaxResponseFragment if e.pos == Replace => (e.selector, toJson(e.render()))
+      case e: EldarionAjaxResponseFragment if e.pos == Replace => (e.selector, e.render())
     }).seq.toMap
     val innerFragments: Map[String, JsValue] = elements.collect({
-      case e: EldarionAjaxResponseFragment if e.pos == Inner => (e.selector, toJson(e.render()))
+      case e: EldarionAjaxResponseFragment if e.pos == Inner => (e.selector, e.render())
     }).seq.toMap
     val appendFragments: Map[String, JsValue] = elements.collect({
-      case e: EldarionAjaxResponseFragment if e.pos == Append => (e.selector, toJson(e.render()))
+      case e: EldarionAjaxResponseFragment if e.pos == Append => (e.selector, e.render())
     }).seq.toMap
     val prependFragments: Map[String, JsValue] = elements.collect({
-      case e: EldarionAjaxResponseFragment if e.pos == Prepend => (e.selector, toJson(e.render()))
+      case e: EldarionAjaxResponseFragment if e.pos == Prepend => (e.selector, e.render())
     }).seq.toMap
 
     // def +(e:EldarionAjaxResponseElement) = copy(elements = elements :+ e)
@@ -125,11 +133,11 @@ trait EldarionAjaxResponseEncodings {
     def render(): String = {
       // toJson(Map("html" -> toJson(html),"fragments" -> toJson(jsonFragments), "inner-fragments" ->toJson(jsonInnerFragments)))
       val result = Utils.prettyPrintJson(toJson(List(
-        html.map("html" -> toJson(_)),
+        noselector.map("noselector" ->),
         if (replaceFragments.nonEmpty) Some("fragments" -> toJson(replaceFragments)) else None,
         if (innerFragments.nonEmpty) Some("inner-fragments" -> toJson(innerFragments)) else None,
         if (appendFragments.nonEmpty) Some("append-fragments" -> toJson(appendFragments)) else None,
-        if (innerFragments.nonEmpty) Some("prepend-fragments" -> toJson(prependFragments)) else None
+        if (prependFragments.nonEmpty) Some("prepend-fragments" -> toJson(prependFragments)) else None
       ).filter(_.isDefined).map(_.get).toMap)) //.filter.toMap
       result
     }
