@@ -52,7 +52,7 @@
     Handlers.prototype.evaluateAfter = function(e, $el, data) {
         eval(data.evaluateAfter);
     };
-    Handlers.prototype.replace = function(e, $el, data) {
+    Handlers.prototype.error = function(e, $el, data) {
         // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
         $($el.data('replace')).each(function( index ) {
             var $d = $(data.noselector.html);
@@ -60,9 +60,24 @@
             new Function(data.noselector.js).call($d);
         });
     };
+    Handlers.prototype.replace = function(e, $el, data) {
+        // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
+        $($el.data('error')).each(function( index ) {
+            var $d = $(data.noselector.error);
+            $(this).replaceWith($d);
+            new Function(data.noselector.js).call($d);
+        });
+    };
     Handlers.prototype.replaceClosest = function(e, $el, data) {
         $el.closest($el.data('replace-closest')).each(function( index ) {
             var $d = $(data.noselector.html);
+            $(this).replaceWith($d);
+            new Function(data.noselector.js).call($d);
+        });
+    };
+    Handlers.prototype.errorClosest = function(e, $el, data) {
+        $el.closest($el.data('error-closest')).each(function( index ) {
+            var $d = $(data.noselector.error);
             $(this).replaceWith($d);
             new Function(data.noselector.js).call($d);
         });
@@ -181,6 +196,8 @@
         $(document).on('eldarion-ajax:success', Handlers.prototype.redirect);
         $(document).on('eldarion-ajax:success', Handlers.prototype.evaluateBefore);
         $(document).on('eldarion-ajax:success', Handlers.prototype.fragments);
+        $(document).on('eldarion-ajax:success', '[data-error]', Handlers.prototype.error);
+        $(document).on('eldarion-ajax:success', '[data-error-closest]', Handlers.prototype.errorClosest);
         $(document).on('eldarion-ajax:success', '[data-replace]', Handlers.prototype.replace);
         $(document).on('eldarion-ajax:success', '[data-replace-closest]', Handlers.prototype.replaceClosest);
         $(document).on('eldarion-ajax:success', '[data-replace-inner]', Handlers.prototype.replaceInner);
