@@ -52,7 +52,7 @@
     Handlers.prototype.evaluateAfter = function(e, $el, data) {
         eval(data.evaluateAfter);
     };
-    Handlers.prototype.error = function(e, $el, data) {
+    Handlers.prototype.replace = function(e, $el, data) {
         // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
         $($el.data('replace')).each(function( index ) {
             var $d = $(data.noselector.html);
@@ -60,7 +60,7 @@
             new Function(data.noselector.js).call($d);
         });
     };
-    Handlers.prototype.replace = function(e, $el, data) {
+    Handlers.prototype.error = function(e, $el, data) {
         // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
         $($el.data('error')).each(function( index ) {
             var $d = $(data.noselector.error);
