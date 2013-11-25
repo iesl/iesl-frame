@@ -1,12 +1,3 @@
-// JIRA integration
-// Requires jQuery!
-jQuery.ajax({
-    url: "http://matisse.cs.umass.edu:9000/s/en_US-vo5e90-418945332/813/3/1.2.9/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?collectorId=a72f13e9",
-    type: "get",
-    cache: true,
-    dataType: "script"
-});
-
 // enable Bootstrap tooltips
 function fixTooltip(selector) {
     $(selector + " a").tooltip({
@@ -100,20 +91,67 @@ $(document).ready(function () {
         });
 });
 
-// // taken from http://stackoverflow.com/a/13106698/812484
-// jQuery.fn.highlight = function () {
-//     $(this).each(function () {
-//         var el = $(this);
-//         $("<div/>")
-//         .width(el.outerWidth())
-//         .height(el.outerHeight())
-//         .css({
-//             "position": "absolute",
-//             "left": el.offset().left,
-//             "top": el.offset().top,
-//             "background-color": "#ffff99",
-//             "opacity": ".7",
-//             "z-index": "9999999"
-//         }).appendTo('body').fadeOut(1000).queue(function () { $(this).remove(); });
-//     });
-// }
+
+//http://stackoverflow.com/questions/848797/yellow-fade-effect-with-jquery/13106698#13106698
+//jQuery.fn.highlight = function () {
+//    $(this).each(function () {
+//        var el = $(this);
+//        $("<div/>")
+//            .width(el.outerWidth())
+//            .height(el.outerHeight())
+//            .css({
+//                "position": "absolute",
+//                "left": el.offset().left,
+//                "top": el.offset().top,
+//                "background-color": "#ffff99",
+//                "opacity": ".7",
+//                "z-index": "9999999"
+//            }).appendTo('body').fadeOut(1000).queue(function () { $(this).remove(); });
+//    });
+//};
+
+jQuery.fn.greyout = function () {
+    $(this).each(function () {
+        var el = $(this);
+        $("<div class='greyout'/>")
+            .width(el.outerWidth())
+            .height(el.outerHeight())
+            .css({
+                "position": "absolute",
+                "left": el.offset().left,
+                "top": el.offset().top,
+                "background-color": "#eeeeee",
+                "opacity": ".7",
+                "z-index": "9999999"
+            }).appendTo(el)
+    });
+};
+
+jQuery.fn.ungreyout = function () {
+    $(this).each(function () {
+        var el = $(this);
+        el.find('.myclass').remove();
+    });
+};
+
+jQuery.fn.highlight = function () {
+    $(this).each(function () {
+        $(this).css({backgroundColor: "#ffffcc"}).animate(
+            {
+                backgroundColor: "#ffffff"
+            }, 1500) } );
+};
+
+$(document).on("eldarion-ajax:begin", function(evt, $el) {
+    x = $($el.attr('spin'));
+    x.spin();
+    x.greyout();
+    //x.css({backgroundColor: "#eeeeee"});
+});
+
+$(document).on("eldarion-ajax:complete", function(evt, $el) {
+    x = $($el.attr('spin'));
+    x.spin(false);
+    x.ungreyout();
+    //x.css({backgroundColor: "#ffffff"});
+});

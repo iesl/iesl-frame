@@ -92,7 +92,8 @@ case class SessionMessageResult(result: WithHeaders[PlainResult]) {
 
   private def withStickySessionMessage(f: SessionMessageType, value: String)(implicit request: Request[_]): PlainResult = {
     val current = request.session.data.filterKeys(_.startsWith("sessionmessage-"))
-    val maxKey = current.keys.map(_.substring(15).toInt).max
+    val currentKeyNumbers: Iterable[Int] = current.keys.map(_.substring(15).toInt)
+    val maxKey = if(currentKeyNumbers.nonEmpty) currentKeyNumbers.max else 0
 
     appendSession("sessionmessage-" + (maxKey + 1), f.key + ":" + value)
   }
