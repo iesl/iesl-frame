@@ -163,9 +163,27 @@
                 });
             });
         }
+        if (data['fragments-closest']) {
+            $.each(data['fragments-closest'], function (i, s) {
+                $el.closest($(i)).each(function( index ) {
+                    var $d = $(s.html);
+                    $(this).replaceWith($d);
+                    new Function(s.js).call($d);
+                });
+            });
+        }
         if (data['inner-fragments']) {
             $.each(data['inner-fragments'], function(i, s) {
                 $(i).each(function( index ) {
+                    var $this = $(this);
+                    $this.html(s.html);
+                    new Function(s.js).call($this);
+                });
+            });
+        }
+        if (data['inner-fragments-closest']) {
+            $.each(data['inner-fragments-closest'], function(i, s) {
+                $el.closest($(i)).each(function( index ) {
                     var $this = $(this);
                     $this.html(s.html);
                     new Function(s.js).call($this);
@@ -181,9 +199,27 @@
                 });
             });
         }
+        if (data['append-fragments-closest']) {
+            $.each(data['append-fragments-closest'], function(i, s) {
+                $el.closest($(i)).each(function( index ) {
+                    var $d = $(s.html);
+                    $(this).append($d);
+                    new Function(s.js).call($d);
+                });
+            });
+        }
         if (data['prepend-fragments']) {
             $.each(data['prepend-fragments'], function(i, s) {
                 $(i).each(function( index ) {
+                    var $d = $(s.html);
+                    $(this).append($d);
+                    new Function(s.js).call($d);
+                });
+            });
+        }
+        if (data['prepend-fragments-closest']) {
+            $.each(data['prepend-fragments-closest'], function(i, s) {
+                $el.closest($(i)).each(function( index ) {
                     var $d = $(s.html);
                     $(this).append($d);
                     new Function(s.js).call($d);
