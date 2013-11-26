@@ -8,6 +8,7 @@ import securesocial.core._
 
 import lib.scalateor.ScalateControllerSupport
 import scala.collection.GenTraversable
+import edu.umass.cs.iesl.scalacommons.NonemptyString
 
 trait IFUser[T] {
   def id: T
@@ -169,7 +170,7 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
     "http" + (if (secure) "s" else "") + "://" + serverHostname + urlPath
   }
 
-  def sendEmail(subject: String, recipient: String, body: String, fromAddress: Option[String]) {
+  def sendEmail(subject: String, recipient: NonemptyString, body: String, fromAddress: Option[String]) {
 
     import com.typesafe.plugin._
 
@@ -178,7 +179,7 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
 
     val mail = use[MailerPlugin].email
     mail.setSubject(subject)
-    mail.addRecipient(recipient)
+    mail.addRecipient(recipient.s)
     mail.addFrom(fromAddress.getOrElse(defaultFromAddress))
     mail.send(body)
   }
