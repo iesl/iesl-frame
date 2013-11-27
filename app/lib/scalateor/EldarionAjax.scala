@@ -17,6 +17,8 @@ object EldarionAjax {
   //implicit def toAjaxResponseHtml(v: EldarionAjaxViewable) = EldarionAjaxResponseHtml(v)
 
   implicit def view(it: AnyRef) = EldarionAjaxViewable(it, "index", "")
+
+  implicit def errorToViewable(x: EldarionAjaxError) = EldarionAjaxErrorViewable(x.message, "")
 }
 
 sealed trait EldarionAjaxFragmentPosition
@@ -29,6 +31,14 @@ case object Prepend extends EldarionAjaxFragmentPosition
 
 case object Append extends EldarionAjaxFragmentPosition
 
+case object ReplaceClosest extends EldarionAjaxFragmentPosition
+
+case object InnerClosest extends EldarionAjaxFragmentPosition
+
+case object PrependClosest extends EldarionAjaxFragmentPosition
+
+case object AppendClosest extends EldarionAjaxFragmentPosition
+
 /**
  * Anything that can be rendered as html, and possibly highlighted
  */
@@ -37,38 +47,53 @@ trait EldarionAjaxResponseElement {
   def render(): JsValue
 }
 
+// basically a stub so we can use the standard template-finding mechanism
+case class EldarionAjaxError(message: String = "An unexpected error occured, and the developers have been notified.  Please reload the page and try again, or contact us for more information.")
+
+case class EldarionAjaxErrorViewable(message: String, javascript: String, args: (Symbol, Any)*) extends EldarionAjaxResponseElement {
+  // hmm, our eldarion-ajax interface shouldn't assume that the site uses bootstrap.  Alternative is to render a scalate error template.  Fine, but too much hassle for now.
+  // also note we don't know what the calling template will do with returned HTML; it might just be ignored.
+  // need to add an "error" type, parallel to "html", to the eldarion-ajax stuff.
+  //def render(): JsValue = toJson(Map("html"->s"<div class='alert alert-error'>$message</div>"))
+  val it = EldarionAjaxError(message)
+
+  def render(): JsValue = toJson(Map("error" -> ScalateOps.viewHtml(it)(args: _*), "js" -> javascript))
+}
+
 /**
  * A wrapper for a domain object that can be rendered to html with a given view.  The javascript hook can be used for highlighting or whatever else.
  */
-case class EldarionAjaxViewable(it: AnyRef, view: String, javascript:String, args: (Symbol, Any)*)  extends EldarionAjaxResponseElement {
+case class EldarionAjaxViewable(it: AnyRef, view: String, javascript: String, args: (Symbol, Any)*) extends EldarionAjaxResponseElement {
   def ~(v: String): EldarionAjaxViewable = EldarionAjaxViewable(it, v, javascript, args: _*)
 
-  def highlight:EldarionAjaxViewable = EldarionAjaxViewable(it, view, javascript + "this.highlight();", args: _*)
+  def highlight: EldarionAjaxViewable = EldarionAjaxViewable(it, view, javascript + "this.highlight();", args: _*)
 
-  def sub(a: (Symbol, Any)*):EldarionAjaxViewable  = EldarionAjaxViewable(it, view, javascript, a: _*)
-  
-  def exec(js:String):EldarionAjaxViewable = EldarionAjaxViewable(it, view, js, args: _*)
+  def sub(a: (Symbol, Any)*): EldarionAjaxViewable = EldarionAjaxViewable(it, view, javascript, a: _*)
 
-  def render(): JsValue = toJson(Map("html"->ScalateOps.viewHtml(it, view)(args: _*),"js"->javascript))
+  def exec(js: String): EldarionAjaxViewable = EldarionAjaxViewable(it, view, js, args: _*)
+
+  def render(): JsValue = toJson(Map("html" -> ScalateOps.viewHtml(it, view)(args: _*), "js" -> javascript))
 }
 
-case class EldarionAjaxSelector(selector: String) {
+case class EldarionAjaxSelector(selector: String, selectClosest: Boolean = false) {
 
-  def replaceWith(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Replace, v)
+  def closest = EldarionAjaxSelector(selector, true)
 
-  def replaceInside(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Inner, v)
+  def replaceWith(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, if (selectClosest) ReplaceClosest else Replace, v)
 
-  def prepend(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Prepend, v)
+  def replaceInside(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, if (selectClosest) InnerClosest else Inner, v)
 
-  def append(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Append, v)
+  def prepend(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, if (selectClosest) PrependClosest else Prepend, v)
 
-  def <>(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Replace, v)
+  def append(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, if (selectClosest) AppendClosest else Append, v)
 
-  def ><(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Inner, v)
+  def <>(v: EldarionAjaxViewable) = replaceWith(v)
 
-  def <<(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Prepend, v)
+  def ><(v: EldarionAjaxViewable) = replaceInside(v)
 
-  def >>(v: EldarionAjaxViewable) = EldarionAjaxResponseFragment(selector, Append, v)
+  def <<(v: EldarionAjaxViewable) = prepend(v)
+
+  def >>(v: EldarionAjaxViewable) = append(v)
 }
 
 // this just means that the template specifies the selector and position, and we can only send one at a time.
@@ -81,7 +106,7 @@ case class EldarionAjaxSelector(selector: String) {
    def atEnd(s:String) = AjaxResponseFragment(s,Append,v)*/
 }*/
 
-case class EldarionAjaxResponseFragment(selector: String, pos: EldarionAjaxFragmentPosition, v: EldarionAjaxViewable, highlight:Boolean = false) extends EldarionAjaxResponseElement {
+case class EldarionAjaxResponseFragment(selector: String, pos: EldarionAjaxFragmentPosition, v: EldarionAjaxViewable, isHighlighted: Boolean = false) extends EldarionAjaxResponseElement {
   def render(): JsValue = v.render
 }
 
@@ -113,8 +138,8 @@ trait EldarionAjaxResponseEncodings {
   // use GenTraversable instead of GenSet because GenSet is not covariant (!?)
   case class EldarionAjaxResponse(elements: GenTraversable[EldarionAjaxResponseElement]) {
     // constraint that there can be only one html is not enforced by type; if multiple are provided, one is picked.
-    def noselector: Option[JsValue] = elements.find(_.isInstanceOf[EldarionAjaxViewable]).headOption.map(e=>e.render())
-    
+    def noselector: Option[JsValue] = elements.find(_.isInstanceOf[EldarionAjaxViewable]).headOption.map(e => e.render())
+
     val replaceFragments: Map[String, JsValue] = elements.collect({
       case e: EldarionAjaxResponseFragment if e.pos == Replace => (e.selector, e.render())
     }).seq.toMap
@@ -127,6 +152,18 @@ trait EldarionAjaxResponseEncodings {
     val prependFragments: Map[String, JsValue] = elements.collect({
       case e: EldarionAjaxResponseFragment if e.pos == Prepend => (e.selector, e.render())
     }).seq.toMap
+    val replaceClosestFragments: Map[String, JsValue] = elements.collect({
+      case e: EldarionAjaxResponseFragment if e.pos == ReplaceClosest => (e.selector, e.render())
+    }).seq.toMap
+    val innerClosestFragments: Map[String, JsValue] = elements.collect({
+      case e: EldarionAjaxResponseFragment if e.pos == InnerClosest => (e.selector, e.render())
+    }).seq.toMap
+    val appendClosestFragments: Map[String, JsValue] = elements.collect({
+      case e: EldarionAjaxResponseFragment if e.pos == AppendClosest => (e.selector, e.render())
+    }).seq.toMap
+    val prependClosestFragments: Map[String, JsValue] = elements.collect({
+      case e: EldarionAjaxResponseFragment if e.pos == PrependClosest => (e.selector, e.render())
+    }).seq.toMap
 
     // def +(e:EldarionAjaxResponseElement) = copy(elements = elements :+ e)
 
@@ -137,7 +174,11 @@ trait EldarionAjaxResponseEncodings {
         if (replaceFragments.nonEmpty) Some("fragments" -> toJson(replaceFragments)) else None,
         if (innerFragments.nonEmpty) Some("inner-fragments" -> toJson(innerFragments)) else None,
         if (appendFragments.nonEmpty) Some("append-fragments" -> toJson(appendFragments)) else None,
-        if (prependFragments.nonEmpty) Some("prepend-fragments" -> toJson(prependFragments)) else None
+        if (prependFragments.nonEmpty) Some("prepend-fragments" -> toJson(prependFragments)) else None,
+        if (replaceClosestFragments.nonEmpty) Some("fragments-closest" -> toJson(replaceClosestFragments)) else None,
+        if (innerClosestFragments.nonEmpty) Some("inner-fragments-closest" -> toJson(innerClosestFragments)) else None,
+        if (appendClosestFragments.nonEmpty) Some("append-fragments-closest" -> toJson(appendClosestFragments)) else None,
+        if (prependClosestFragments.nonEmpty) Some("prepend-fragments-closest" -> toJson(prependClosestFragments)) else None
       ).filter(_.isDefined).map(_.get).toMap)) //.filter.toMap
       result
     }
@@ -152,13 +193,13 @@ trait EldarionAjaxResponseEncodings {
   */
 
   //confused about inheritance with Writeables...
-/*
-  implicit def writeableOf_AjaxViewable(implicit codec: Codec): Writeable[EldarionAjaxViewable] =
-    Writeable[EldarionAjaxViewable]((element: EldarionAjaxViewable) => codec.encode(EldarionAjaxResponse(Seq(element)).render()))
-
-  implicit def contentTypeOf_AjaxViewable(implicit codec: Codec): ContentTypeOf[EldarionAjaxViewable] =
-    ContentTypeOf[EldarionAjaxViewable](Some(ContentTypes.JSON))
-*/
+  /*
+    implicit def writeableOf_AjaxViewable(implicit codec: Codec): Writeable[EldarionAjaxViewable] =
+      Writeable[EldarionAjaxViewable]((element: EldarionAjaxViewable) => codec.encode(EldarionAjaxResponse(Seq(element)).render()))
+  
+    implicit def contentTypeOf_AjaxViewable(implicit codec: Codec): ContentTypeOf[EldarionAjaxViewable] =
+      ContentTypeOf[EldarionAjaxViewable](Some(ContentTypes.JSON))
+  */
   implicit def writeableOf_AjaxRedirect(implicit codec: Codec): Writeable[EldarionAjaxRedirect] =
     Writeable[EldarionAjaxRedirect]((element: EldarionAjaxRedirect) => codec.encode(element.render()))
 

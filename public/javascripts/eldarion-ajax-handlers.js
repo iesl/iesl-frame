@@ -60,9 +60,24 @@
             new Function(data.noselector.js).call($d);
         });
     };
+    Handlers.prototype.error = function(e, $el, data) {
+        // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
+        $($el.data('error')).each(function( index ) {
+            var $d = $(data.noselector.error);
+            $(this).replaceWith($d);
+            new Function(data.noselector.js).call($d);
+        });
+    };
     Handlers.prototype.replaceClosest = function(e, $el, data) {
         $el.closest($el.data('replace-closest')).each(function( index ) {
             var $d = $(data.noselector.html);
+            $(this).replaceWith($d);
+            new Function(data.noselector.js).call($d);
+        });
+    };
+    Handlers.prototype.errorClosest = function(e, $el, data) {
+        $el.closest($el.data('error-closest')).each(function( index ) {
+            var $d = $(data.noselector.error);
             $(this).replaceWith($d);
             new Function(data.noselector.js).call($d);
         });
@@ -148,9 +163,27 @@
                 });
             });
         }
+        if (data['fragments-closest']) {
+            $.each(data['fragments-closest'], function (i, s) {
+                $el.closest($(i)).each(function( index ) {
+                    var $d = $(s.html);
+                    $(this).replaceWith($d);
+                    new Function(s.js).call($d);
+                });
+            });
+        }
         if (data['inner-fragments']) {
             $.each(data['inner-fragments'], function(i, s) {
                 $(i).each(function( index ) {
+                    var $this = $(this);
+                    $this.html(s.html);
+                    new Function(s.js).call($this);
+                });
+            });
+        }
+        if (data['inner-fragments-closest']) {
+            $.each(data['inner-fragments-closest'], function(i, s) {
+                $el.closest($(i)).each(function( index ) {
                     var $this = $(this);
                     $this.html(s.html);
                     new Function(s.js).call($this);
@@ -166,9 +199,27 @@
                 });
             });
         }
+        if (data['append-fragments-closest']) {
+            $.each(data['append-fragments-closest'], function(i, s) {
+                $el.closest($(i)).each(function( index ) {
+                    var $d = $(s.html);
+                    $(this).append($d);
+                    new Function(s.js).call($d);
+                });
+            });
+        }
         if (data['prepend-fragments']) {
             $.each(data['prepend-fragments'], function(i, s) {
                 $(i).each(function( index ) {
+                    var $d = $(s.html);
+                    $(this).append($d);
+                    new Function(s.js).call($d);
+                });
+            });
+        }
+        if (data['prepend-fragments-closest']) {
+            $.each(data['prepend-fragments-closest'], function(i, s) {
+                $el.closest($(i)).each(function( index ) {
                     var $d = $(s.html);
                     $(this).append($d);
                     new Function(s.js).call($d);
@@ -181,6 +232,8 @@
         $(document).on('eldarion-ajax:success', Handlers.prototype.redirect);
         $(document).on('eldarion-ajax:success', Handlers.prototype.evaluateBefore);
         $(document).on('eldarion-ajax:success', Handlers.prototype.fragments);
+        $(document).on('eldarion-ajax:success', '[data-error]', Handlers.prototype.error);
+        $(document).on('eldarion-ajax:success', '[data-error-closest]', Handlers.prototype.errorClosest);
         $(document).on('eldarion-ajax:success', '[data-replace]', Handlers.prototype.replace);
         $(document).on('eldarion-ajax:success', '[data-replace-closest]', Handlers.prototype.replaceClosest);
         $(document).on('eldarion-ajax:success', '[data-replace-inner]', Handlers.prototype.replaceInner);

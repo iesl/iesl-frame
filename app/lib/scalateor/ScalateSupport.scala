@@ -5,12 +5,20 @@ import org.fusesource.scalate._
 import java.io.File
 import play.api._
 import play.api.mvc._
-import lib.IFUser
+import lib.{ScalateOps, IFUser}
 import java.util.UUID
 import org.fusesource.scalate.ScalateLayout
 import org.fusesource.scalate.ViewConfig
 import org.fusesource.scalate.ModelConfig
 import status.SessionMessage
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json._
+import lib.scalateor.EldarionAjaxViewable
+import org.fusesource.scalate.ScalateLayout
+import org.fusesource.scalate.ViewConfig
+import org.fusesource.scalate.ModelConfig
+import edu.umass.cs.iesl.scalacommons.{StringUtils, NonemptyString}
+import StringUtils._
 
 //import org.fusesource.scalate.ScalateSupportApp.engineFactory
 
@@ -103,6 +111,31 @@ trait ConfiguredScalateEngine {
 
 }
 */
+
+// mirrors EldarionAjaxViewable
+
+/*
+case class FullPageViewable(it: AnyRef, view: String, javascript:Option[NonemptyString], args: (Symbol, Any)*) {
+  def ~(v: String): FullPageViewable = FullPageViewable(it, v, javascript, args: _*)
+
+  def highlight:FullPageViewable = FullPageViewable(it, view, javascript.unwrap + "this.highlight();", args: _*)
+
+  def sub(a: (Symbol, Any)*):FullPageViewable  = FullPageViewable(it, view, javascript, a: _*)
+
+  def exec(js:Option[NonemptyString]):FullPageViewable = FullPageViewable(it, view, js, args: _*)
+
+  def render(): String = {
+    
+    // do this in the layour
+    //val wrappedJs = javascript.map("""<script type="application/javascript">""" + _ + "</script>")
+    
+    // layout must include a "javascript" substitution for this to work
+    val argsWithJs :Seq[(Symbol,Any)]= args.toSeq :+ ('javascript -> javascript)
+    ScalateOps.viewHtml(it, view)(argsWithJs: _*)
+  }
+}
+*/
+
 trait ScalateTemplateImplicits {
 
   implicit def stringToConfig(uri: String)(
@@ -140,7 +173,7 @@ trait ScalateControllerImplicits {
         .withEngine(eng)
         .withRequestHeader(request)
         .withLayout(layout.uri)
-        .withAttribs(attrs:_*)
+        .addAttribs(attrs:_*)
       v
     }
   }
@@ -159,7 +192,7 @@ trait ScalateControllerImplicits {
         .withEngine(eng)
         .withRequestHeader(request)
         .withLayout(layout.uri)
-        .withAttribs(attrs:_*)
+        .addAttribs(attrs:_*)
       v
     }
 
