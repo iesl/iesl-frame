@@ -117,8 +117,8 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
     }
 
   def UserAction[A](
-                     bparser: BodyParser[A]
-                     )(f: Request[A] => Option[IFUser[T]] => Result) = SecuredAction(
+    bparser: BodyParser[A]
+  )(f: Request[A] => Option[IFUser[T]] => Result) = SecuredAction(
     ajaxCall = false,
     authorize = None,
     p = bparser
