@@ -5,20 +5,13 @@ import org.fusesource.scalate._
 import java.io.File
 import play.api._
 import play.api.mvc._
-import lib.{ScalateOps, IFUser}
+import lib.IFUser
 import java.util.UUID
-import org.fusesource.scalate.ScalateLayout
-import org.fusesource.scalate.ViewConfig
-import org.fusesource.scalate.ModelConfig
 import status.SessionMessage
-import play.api.libs.json.JsValue
-import play.api.libs.json.Json._
-import lib.scalateor.EldarionAjaxViewable
 import org.fusesource.scalate.ScalateLayout
 import org.fusesource.scalate.ViewConfig
 import org.fusesource.scalate.ModelConfig
-import edu.umass.cs.iesl.scalacommons.{StringUtils, NonemptyString}
-import StringUtils._
+import lib.ajax.EldarionAjaxResponseEncodings
 
 //import org.fusesource.scalate.ScalateSupportApp.engineFactory
 
@@ -112,32 +105,10 @@ trait ConfiguredScalateEngine {
 }
 */
 
-// mirrors EldarionAjaxViewable
-
-/*
-case class FullPageViewable(it: AnyRef, view: String, javascript:Option[NonemptyString], args: (Symbol, Any)*) {
-  def ~(v: String): FullPageViewable = FullPageViewable(it, v, javascript, args: _*)
-
-  def highlight:FullPageViewable = FullPageViewable(it, view, javascript.unwrap + "this.highlight();", args: _*)
-
-  def sub(a: (Symbol, Any)*):FullPageViewable  = FullPageViewable(it, view, javascript, a: _*)
-
-  def exec(js:Option[NonemptyString]):FullPageViewable = FullPageViewable(it, view, js, args: _*)
-
-  def render(): String = {
-    
-    // do this in the layour
-    //val wrappedJs = javascript.map("""<script type="application/javascript">""" + _ + "</script>")
-    
-    // layout must include a "javascript" substitution for this to work
-    val argsWithJs :Seq[(Symbol,Any)]= args.toSeq :+ ('javascript -> javascript)
-    ScalateOps.viewHtml(it, view)(argsWithJs: _*)
-  }
-}
-*/
 
 trait ScalateTemplateImplicits {
 
+  /*
   implicit def stringToConfig(uri: String)(
     implicit eng: CustomTemplateEngine
     ) = new {
@@ -151,6 +122,19 @@ trait ScalateTemplateImplicits {
     def template: ModelConfig =
       ModelConfig(model).withEngine(eng)
   }
+  */
+
+  // no need for ".template"
+
+  implicit def stringToConfig(uri: String)(
+    implicit eng: CustomTemplateEngine
+    ) = ViewConfig(uri).withEngine(eng)
+
+
+  implicit def anyRefToConfigOps(model: AnyRef)(
+    implicit eng: CustomTemplateEngine
+    ) = ModelConfig(model).withEngine(eng)
+
 
 }
 
@@ -158,12 +142,15 @@ trait ScalateControllerImplicits {
 
   implicit val defaultLayout = ScalateLayout("/layout/layout.jade")
 
+  // no need for ".template", except to avoid ambiguous implicits vs. the Ajax versions.
+  // OK, but gall it ".page" instead to highlight the fact that these are not ajax.
+
   implicit def stringToConfigOps(uri: String)(
     implicit eng: CustomTemplateEngine, request: RequestHeader, layout: ScalateLayout, userOpt: Option[IFUser[UUID]] = None
     ) = new {
-    def template: ViewConfig = {
+    def page: ViewConfig = {
 
-      val baseAttrs : Seq[(String, Any)] = Seq(
+      val baseAttrs: Seq[(String, Any)] = Seq(
         "userOpt" -> userOpt,
         "sessionMessages" -> SessionMessage.get)
 
@@ -173,7 +160,7 @@ trait ScalateControllerImplicits {
         .withEngine(eng)
         .withRequestHeader(request)
         .withLayout(layout.uri)
-        .addAttribs(attrs:_*)
+        .addAttribs(attrs: _*)
       v
     }
   }
@@ -181,21 +168,20 @@ trait ScalateControllerImplicits {
   implicit def anyRefToConfigOps(model: AnyRef)(
     implicit eng: CustomTemplateEngine, request: RequestHeader, layout: ScalateLayout, userOpt: Option[IFUser[UUID]] = None
     ) = new {
-    def template: ModelConfig = {
-      val baseAttrs : Seq[(String, Any)] = Seq(
+    def page: ModelConfig = {
+      val baseAttrs: Seq[(String, Any)] = Seq(
         "userOpt" -> userOpt,
         "sessionMessages" -> SessionMessage.get)
 
       val attrs = if (userOpt.isDefined) baseAttrs :+ ("user" -> userOpt.get) else baseAttrs
-      
+
       val v = ModelConfig(model)
         .withEngine(eng)
         .withRequestHeader(request)
         .withLayout(layout.uri)
-        .addAttribs(attrs:_*)
+        .addAttribs(attrs: _*)
       v
     }
-
   }
 
 }

@@ -28,9 +28,7 @@ import status.{SessionMessage, Warning}
 class SecureSocialViews(application: Application) extends TemplatesPlugin with ScalateControllerSupport {
  def renderHtml(viewname:String, args:(Symbol, Any)*)(implicit request: RequestHeader, user:Option[IFUser[UUID]]=None): Html = {
    Html(
-     (s"${viewname}.jade").template.addSymAttribs(
-       args:_*
-     ).render
+     ((s"${viewname}.jade").page sub (args:_*)).render
    )
  }
 

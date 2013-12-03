@@ -1,9 +1,9 @@
 package status
 
 import play.api.mvc._
-import lib.scalateor.EldarionAjax._
-import lib.scalateor.EldarionAjaxResponseFragment
-import scala.collection.GenTraversable
+import lib.ajax.{EldarionAjaxResponseFragment, EldarionAjax}
+import EldarionAjax._
+import lib.AjaxResult
 
 // trait Flashing {
 //   def message: String
@@ -79,8 +79,8 @@ object SessionMessageType {
 }
 
 
-case class SessionMessageResult(result: WithHeaders[PlainResult]) {
-  def appendSession(key: String, value: String)(implicit request: Request[_]): PlainResult = result.withSession(request.session +(key, value))
+case class SessionMessageResult(result: PlainResult) {
+  def appendSession(key: String, value: String)(implicit request: Request[_]):PlainResult = result.withSession(request.session +(key, value))
 
   // we store a list of flashing messages in the Session, naming them flash-0, flash-1, etc.
   // the value of each takes the form "type:message"
@@ -98,18 +98,50 @@ case class SessionMessageResult(result: WithHeaders[PlainResult]) {
     appendSession("sessionmessage-" + (maxKey + 1), f.key + ":" + value)
   }
 
-  def success(value: String)(implicit request: Request[_]) = withStickySessionMessage(Success, value)
+  def success(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Success, value)
 
-  def info(value: String)(implicit request: Request[_]) = withStickySessionMessage(Info, value)
+  def info(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Info, value)
 
-  def warning(value: String)(implicit request: Request[_]) = withStickySessionMessage(Warning, value)
+  def warning(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Warning, value)
 
-  def error(value: String)(implicit request: Request[_]) = withStickySessionMessage(Error, value)
+  def error(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Error, value)
+}
+
+
+case class AjaxSessionMessageResult(result: AjaxResult) {
+  
+  def appendSession(key: String, value: String)(implicit request: Request[_]): AjaxResult =  result.withSession(request.session +(key, value))
+
+  // we store a list of flashing messages in the Session, naming them flash-0, flash-1, etc.
+  // the value of each takes the form "type:message"
+
+  def clearSessionMessages(implicit request: Request[_]): PlainResult  = {
+    val current = request.session.data.filterKeys(_.startsWith("sessionmessage-"))
+    result.withSession(current.keys.foldLeft(request.session)((s, k) => s - k))
+  }
+
+  private def withStickySessionMessage(f: SessionMessageType, value: String)(implicit request: Request[_]): AjaxResult = {
+    val current = request.session.data.filterKeys(_.startsWith("sessionmessage-"))
+    val currentKeyNumbers: Iterable[Int] = current.keys.map(_.substring(15).toInt)
+    val maxKey = if(currentKeyNumbers.nonEmpty) currentKeyNumbers.max else 0
+
+    appendSession("sessionmessage-" + (maxKey + 1), f.key + ":" + value)
+  }
+
+  def success(value: String)(implicit request: Request[_]): AjaxResult = withStickySessionMessage(Success, value)
+
+  def info(value: String)(implicit request: Request[_]):AjaxResult= withStickySessionMessage(Info, value)
+
+  def warning(value: String)(implicit request: Request[_]): AjaxResult = withStickySessionMessage(Warning, value)
+  
+  def error(value: String)(implicit request: Request[_]): AjaxResult  = withStickySessionMessage(Error, value)
 }
 
 
 object SessionMessage {
-  implicit def toRichResult(result: WithHeaders[PlainResult]) = SessionMessageResult(result)
+  implicit def toRichAjaxResult[T <: AjaxResult
+  ](result: T) = AjaxSessionMessageResult(result)
+  implicit def toRichResult[T <: PlainResult](result: T) = SessionMessageResult(result)
 
   private final val p = "(.*?):(.*)".r
 
