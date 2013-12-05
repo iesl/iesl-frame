@@ -1,14 +1,48 @@
 package lib
 
 
+import _root_.java.lang.Exception
 import com.typesafe.scalalogging.slf4j.Logging
 import play.api.Play.current
 import play.api.mvc._
 import securesocial.core._
 
-import lib.scalateor.ScalateControllerSupport
+import lib.scalateor._
 import scala.collection.GenTraversable
 import edu.umass.cs.iesl.scalacommons.NonemptyString
+import play.api.http.Status._
+import edu.umass.cs.iesl.scalacommons.NonemptyString
+import scala.Some
+import securesocial.core.SecuredRequest
+import securesocial.core.RequestWithUser
+import play.api.http.Writeable
+import play.api.http.HeaderNames._
+import edu.umass.cs.iesl.scalacommons.NonemptyString
+import scala.Some
+import play.api.mvc.SimpleResult
+import play.api.mvc.ResponseHeader
+import play.api.libs.iteratee.Enumerator
+import play.api.mvc.Results.Status
+import edu.umass.cs.iesl.scalacommons.NonemptyString
+import scala.Some
+import play.api.mvc.DiscardingCookie
+import play.api.mvc.ResponseHeader
+import securesocial.core.SecuredRequest
+import securesocial.core.RequestWithUser
+import play.api.mvc.Cookie
+import scala.Exception
+import play.api.libs.json.JsValue
+import lib.ajax._
+import lib.ajax.EldarionAjaxResponseFragment
+import lib.ajax.EldarionAjaxError
+import edu.umass.cs.iesl.scalacommons.NonemptyString
+import scala.Some
+import play.api.mvc.SimpleResult
+import play.api.mvc.DiscardingCookie
+import play.api.mvc.ResponseHeader
+import securesocial.core.SecuredRequest
+import securesocial.core.RequestWithUser
+import play.api.mvc.Cookie
 
 trait IFUser[T] {
   def id: T
@@ -35,6 +69,112 @@ trait IFLinkedAccountStore[T] {
 
 }
 
+
+/*
+Ajax calls must always return "OK"; otherwise the browser shows nothing and the user gets confused.
+Any error messages (e.g. "not authorized" etc. must be provided as ajax fragments.
+
+Jump through hoops to enforce this with types.
+ */
+
+class AjaxResult(_header: ResponseHeader, _body: Enumerator[EldarionAjaxResponse])(implicit val _writeable: Writeable[EldarionAjaxResponse]) extends SimpleResult[EldarionAjaxResponse](_header,_body)(_writeable) {
+
+  override def withSession(session: Session): AjaxResult = {
+    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
+  }   
+  
+  override def withCookies(cookies: Cookie*): AjaxResult = {
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+  }
+
+  override def discardingCookies(cookies: DiscardingCookie*): AjaxResult = {
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
+  }
+
+  override def withHeaders(headers: (String, String)*) : AjaxResult = {
+    new AjaxResult(header.copy(headers = header.headers ++ headers), body)
+  }
+
+  override def toString = {
+    "SimpleResult(" + header + ")"
+  }
+
+}
+
+
+// this seems like it should work fine, but somewhere Play swallows an error that I couldn't diagnose.  Backtracking...
+/*
+case class AjaxResult(header: ResponseHeader, body: Enumerator[EldarionAjaxResponse])(implicit val writeable: Writeable[EldarionAjaxResponse]) extends PlainResult {
+
+  override def withSession(session: Session): AjaxResult = {
+    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
+  }
+
+  override def withCookies(cookies: Cookie*): AjaxResult = {
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+  }
+
+  override def discardingCookies(cookies: DiscardingCookie*): AjaxResult = {
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
+  }
+  
+  /** The body content type. */
+  type BODY_CONTENT = EldarionAjaxResponse
+
+  /**
+   * Adds headers to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withHeaders(ETAG -> "0")
+   * }}}
+   *
+   * @param headers the headers to add to this result.
+   * @return the new result
+   */
+  def withHeaders(headers: (String, String)*) : AjaxResult = {
+    copy(header = header.copy(headers = header.headers ++ headers))
+  }
+
+  override def toString = {
+    "AjaxResult(" + header + ")"
+  }
+
+}
+*/
+
+object AjaxOk {
+   /*def apply(content: EldarionAjaxResponse)(implicit writeable: Writeable[EldarionAjaxResponse]): AjaxResult = {
+    new AjaxResult(
+      header = ResponseHeader(OK, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+      Enumerator(content))
+  }*/
+
+  def apply(fragments: EldarionAjaxResponseFragment*)(implicit writeable: Writeable[EldarionAjaxResponse]): AjaxResult = {
+    val content = new EldarionAjaxFragmentsResponse(fragments) //.renderJs()
+    new AjaxResult(
+      ResponseHeader(OK, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+      Enumerator(content))
+  }
+}
+
+
+object AjaxRedirect {
+  /*def apply(content: EldarionAjaxResponse)(implicit writeable: Writeable[EldarionAjaxResponse]): AjaxResult = {
+   new AjaxResult(
+     header = ResponseHeader(OK, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+     Enumerator(content))
+ }*/
+
+  def apply(location:String)(implicit writeable: Writeable[EldarionAjaxResponse]): AjaxResult = {
+    val content = new EldarionAjaxRedirect(location) //.renderJs()
+    new AjaxResult(
+      ResponseHeader(OK, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+      Enumerator(content))
+  }
+}
+
+
 object UserControllerOps {
   val ImpersonateUserKey = "impersonate.user.id"
 }
@@ -51,15 +191,25 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
 
 
   def maybeImpersonateAction[A](ouser: Option[IFUser[T]])(f: Request[A] => Option[IFUser[T]] => Result)(implicit req: Request[A]): Result = {
+    try {
     (for {
       mainUser <- ouser
       otherUser <- req.session.get(ImpersonateUserKey)
       if authorizedToImpersonate(mainUser)
       impUser <- userStore.getByStringId(otherUser)
     } yield {
-      f(req)(Some(impUser))
+      val result = f(req)(Some(impUser))
+      result
     }).getOrElse {
-      f(req)(ouser)
+      val result =  f(req)(ouser)
+      result
+    }
+    }
+    catch {
+      case e: Throwable => {
+        logger.error("error",e)
+        throw e
+      }
     }
   }
 
@@ -109,14 +259,47 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
           result
         }
         catch {
+          case e: NotAuthorizedException => Unauthorized
           case e: Throwable => {
-            e.printStackTrace()
+            logger.error("error", e)
             throw e
           }
         }
       }
     }
 
+
+  case class NotAuthorizedException(s: String = "") extends Exception(s)
+  case class NotFoundException(s: String = "") extends Exception(s)
+  /*
+  object AjaxOk {
+    def apply[C](content: C)(implicit writeable: Writeable[C]) : AjaxOk = new AjaxOk(content)(writeable)
+  }
+  */
+  def AjaxUserAction[C](f: Request[AnyContent] => Option[IFUser[T]] => AjaxResult): Action[AnyContent] =
+    SecuredAction {
+      import EldarionAjax._
+      implicit req => {
+        try {
+          logger.trace("Executing secured AJAX action")
+          logger.trace(req.toString())
+          val result = maybeImpersonateAction(userFromSSocialUser)(f)(req)
+          result
+        }
+        catch {
+          case e: NotAuthorizedException => AjaxOk(".ajaxerror" >< EldarionAjaxError("Not authorized.") ~ "error") //Unauthorized
+          case e: NotFoundException => AjaxOk(".ajaxerror" >< EldarionAjaxError("Not found.") ~ "error") //Unauthorized
+          case e: Throwable => {
+            logger.error("error", e)
+            AjaxOk(".ajaxerror" >< (EldarionAjaxError() ~ "error"))
+            //throw e
+          }
+        }
+      }
+    }
+
+  // is this used anywhere?
+  /*
   def UserAction[A](
     bparser: BodyParser[A]
   )(f: Request[A] => Option[IFUser[T]] => Result) = SecuredAction(
@@ -130,8 +313,16 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
       result
     }
   }
+  */
 
   def OptUserAction(f: Request[AnyContent] => Option[IFUser[T]] => Result) = UserAwareAction {
+    implicit req =>
+      logger.trace(req.toString())
+      val result = maybeImpersonateAction(ouserFromSSocialUser)(f)(req)
+      result
+  }
+
+  def AjaxOptUserAction(f: Request[AnyContent] => Option[IFUser[T]] => AjaxResult) = UserAwareAction {
     implicit req =>
       logger.trace(req.toString())
       val result = maybeImpersonateAction(ouserFromSSocialUser)(f)(req)
