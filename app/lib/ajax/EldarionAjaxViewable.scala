@@ -24,6 +24,12 @@ case class EldarionAjaxViewable(it: AnyRef, view: String, javascript: String, ar
   def renderString: String = ScalateOps.viewHtml(it, view)(args: _*)
 }
 
+case class EldarionAjaxJsOnly(javascript: String) {
+  // include the "html" key just in case, to avoid errors on the client side
+  def renderJs(): JsValue = toJson(Map("html" -> "", "js" -> javascript))
+}
+
+
 
 case class EldarionAjaxErrorViewable(message: String, javascript: String, args: (Symbol, Any)*) { //extends EldarionAjaxResponseElement {
 // hmm, our eldarion-ajax interface shouldn't assume that the site uses bootstrap.  Alternative is to render a scalate error template.  Fine, but too much hassle for now.
