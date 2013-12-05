@@ -13,7 +13,6 @@ import org.fusesource.scalate.ModelConfig
 import status.SessionMessage
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json._
-import lib.scalateor.EldarionAjaxViewable
 import org.fusesource.scalate.ScalateLayout
 import org.fusesource.scalate.ViewConfig
 import org.fusesource.scalate.ModelConfig
