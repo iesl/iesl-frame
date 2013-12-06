@@ -49,7 +49,7 @@ object IeslFrameBuild extends Build {
     ieslScalaCommons("latest.integration"),
     //"javax.transaction" % "jta" % "latest.release",
     "net.sf.ehcache" % "ehcache-core" % "latest.release",
-    "org.scalaz" %% "scalaz-concurrent" % "7.0.1",
+    "org.scalaz" %% "scalaz-concurrent" % "latest.release",
     "org.json4s" %% "json4s-native" % "latest.release"
   )
 
