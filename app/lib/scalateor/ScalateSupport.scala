@@ -16,18 +16,10 @@ import org.fusesource.scalate.ViewConfig
 import org.fusesource.scalate.ModelConfig
 import lib.ajax.EldarionAjaxResponseEncodings
 
-//import org.fusesource.scalate.ScalateSupportApp.engineFactory
 
 
 trait NotRunningPlayConfig extends ScalateConfig {
   override def templateRootPaths: Seq[File] = Seq(getFile("/app/templates"))
-
-  // import play.api.Configuration
-  // import play.api.Play.current
-  // def conf: Configuration = Play.configuration
-  // override val mode: ScalateMode =
-  // override def getFile(s:String):java.io.File = Play.getFile(s)
-  // override def classloader: java.lang.ClassLoader = Play.classloader
 }
 
 trait RunningPlayConfig extends NotRunningPlayConfig {
@@ -37,7 +29,7 @@ trait RunningPlayConfig extends NotRunningPlayConfig {
 
   def conf: Configuration = Play.configuration
 
-  override val mode: ScalateMode = Play.mode match {
+  override def mode: ScalateMode = Play.mode match {
     case Mode.Dev => DevMode
     case Mode.Prod => ProductionMode
   }
@@ -48,7 +40,8 @@ trait RunningPlayConfig extends NotRunningPlayConfig {
 }
 
 object engineFactory extends EngineContainer with RunningPlayConfig {
-  override val mode: ScalateMode = DevMode
+  override def mode: ScalateMode = _mode
+  var _mode: ScalateMode = DevMode
 
   // play.mode match ...
   def configurator: EngineLike => Unit = {
@@ -71,64 +64,9 @@ trait ConfiguredScalateEngine {
 
 }
 
-/*
-class EngineFactory(_paths : Seq[File]) extends EngineContainer with RunningPlayConfig {
-  override val layoutMode = false
-  override val mode: ScalateMode = DevMode // todo play.mode match ...
-  def configurator: EngineLike => Unit = {e => ()}
-
-  val templateEngine : EngineLike = configureEngine { eng =>
-  }
-
-  override def templateRootPaths = _paths
-}
-
-object GlobalEngine {
-  private var _engine : EngineLike = null
-  def setEngine(e:EngineLike) { _engine = e}
-  def apply() = _engine 
-}
-
-trait ConfiguredScalateEngine {
-  
-  
-  implicit def templateEngine = {
-    //engineFactory.templateEngine.reportConfig()
-    //engineFactory.templateEngine
-
-    GlobalEngine().reportConfig()
-    GlobalEngine()
-  }
-/*
-  // TODO Fix this!!!!
-  implicit def customEngine = templateEngine.asInstanceOf[CustomTemplateEngine]
-  */
-  //implicit def customEngine : CustomTemplateEngine
-
-}
-*/
-
 
 trait ScalateTemplateImplicits {
-
-  /*
-  implicit def stringToConfig(uri: String)(
-    implicit eng: CustomTemplateEngine
-    ) = new {
-    def template: ViewConfig =
-      ViewConfig(uri).withEngine(eng)
-  }
-
-  implicit def anyRefToConfigOps(model: AnyRef)(
-    implicit eng: CustomTemplateEngine
-    ) = new {
-    def template: ModelConfig =
-      ModelConfig(model).withEngine(eng)
-  }
-  */
-
-  // no need for ".template"
-
+  
   implicit def stringToConfig(uri: String)(
     implicit eng: CustomTemplateEngine
     ) = ViewConfig(uri).withEngine(eng)
@@ -217,30 +155,3 @@ object ScalateApp {
   }
 
 }
-
-/*
-object ScalateApp {
-  import java.io.File
-  private class Factory(_paths: Seq[File]) extends ScalateEngineFactory with NotRunningPlayConfig {
-    // todo abstract app directory.  For now, assume working directory is the app.
-    // override def getFile(s:String): File = new File(new File("."), s)
-    override def classloader: java.lang.ClassLoader = Thread.currentThread.getContextClassLoader()
-
-    override val layoutMode = false
-    override val mode: ScalateMode = PrecompileMode
-
-    override def templateRootPaths = _paths
-    
-    val templateEngine = configureEngine { eng =>
-    }
-  }
-
-
-  def main(args: Array[String]) {
-
-    val engine = new Factory(args.map(new File(_))).templateEngine
-    engine.precompileAll()
-  }
-
-}
-*/
