@@ -130,9 +130,35 @@ jQuery.fn.greyout = function () {
 jQuery.fn.ungreyout = function () {
     $(this).each(function () {
         var el = $(this);
-        el.find('.myclass').remove();
+        el.find('.greyout').remove();
     });
 };
+
+
+jQuery.fn.whiteout = function () {
+    $(this).each(function () {
+        var el = $(this);
+        $("<div class='whiteout'/>")
+            .width(el.outerWidth())
+            .height(el.outerHeight())
+            .css({
+                "position": "absolute",
+                "left": el.offset().left,
+                "top": el.offset().top,
+                "background-color": "#ffffff",
+                "opacity": ".7",
+                "z-index": "9999999"
+            }).appendTo(el)
+    });
+};
+
+jQuery.fn.unwhiteout = function () {
+    $(this).each(function () {
+        var el = $(this);
+        el.find('.whiteout').remove();
+    });
+};
+
 
 jQuery.fn.highlight = function () {
     $(this).each(function () {
