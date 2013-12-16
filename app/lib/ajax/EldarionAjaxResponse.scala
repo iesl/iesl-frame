@@ -41,11 +41,12 @@ case class EldarionAjaxFragmentsResponse(elements: GenTraversable[EldarionAjaxRe
       case (k, v) => {
         k.key -> toJson(v)
       }
-    }).seq.toMap ++ noselector.map("noselector" ->))
+    }).seq.toMap ++ noselector.map(s => "noselector" -> s))
   }
 
   def renderString(): String = {
     val result = Utils.prettyPrintJson(renderJs())
+    println(s"renderJs().result: ${result}")
     result
   }
 
