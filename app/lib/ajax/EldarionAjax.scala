@@ -17,7 +17,8 @@ object EldarionAjax {
   
   //implicit def toAjaxResponseHtml(v: EldarionAjaxViewable) = EldarionAjaxResponseHtml(v)
 
-  implicit def view(it: AnyRef) = EldarionAjaxViewable(it, "index", "")
+  def html(s:String) = EldarionAjaxString(s)
+  implicit def view(it: AnyRef) = EldarionAjaxScalateViewable(it, "index", "")
   implicit def exec(js:String) = EldarionAjaxJsOnly(js)
 
   //implicit def errorToViewable(x: EldarionAjaxError) = EldarionAjaxErrorViewable(x.message, "")
