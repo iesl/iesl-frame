@@ -19,7 +19,7 @@ object EldarionAjax {
 
   def html(s:String) = EldarionAjaxString(s)
   implicit def view(it: AnyRef) = EldarionAjaxScalateViewable(it, "index", "")
-  implicit def exec(js:String) = EldarionAjaxJsOnly(js)
+  def exec(js:String) = EldarionAjaxJsOnly(js)
 
   //implicit def errorToViewable(x: EldarionAjaxError) = EldarionAjaxErrorViewable(x.message, "")
 
