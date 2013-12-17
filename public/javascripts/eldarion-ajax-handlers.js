@@ -53,82 +53,102 @@
         eval(data.evaluateAfter);
     };
     Handlers.prototype.replace = function(e, $el, data) {
-        // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
-        $($el.data('replace')).each(function( index ) {
-            var $d = $(data.noselector.html);
-            $(this).replaceWith($d);
-            new Function(data.noselector.js).call($d);
-        });
+        if (data.noselector) {
+            // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
+            $($el.data('replace')).each(function( index ) {
+                var $d = $(data.noselector.html);
+                $(this).replaceWith($d);
+                new Function(data.noselector.js).call($d);
+            });
+        }
     };
     Handlers.prototype.error = function(e, $el, data) {
+        if (data.noselector) {
         // this tortured construction is needed to capture each new DOM node in the case of multiple replacements.
         $($el.data('error')).each(function( index ) {
             var $d = $(data.noselector.error);
             $(this).replaceWith($d);
             new Function(data.noselector.js).call($d);
         });
+        }
     };
     Handlers.prototype.replaceClosest = function(e, $el, data) {
+        if (data.noselector) {
         $el.closest($el.data('replace-closest')).each(function( index ) {
             var $d = $(data.noselector.html);
             $(this).replaceWith($d);
             new Function(data.noselector.js).call($d);
         });
+        }
     };
     Handlers.prototype.errorClosest = function(e, $el, data) {
+        if (data.noselector) {
         $el.closest($el.data('error-closest')).each(function( index ) {
             var $d = $(data.noselector.error);
             $(this).replaceWith($d);
             new Function(data.noselector.js).call($d);
         });
+        }
     };
     Handlers.prototype.replaceInner = function(e, $el, data) {
+        if (data.noselector) {
         $($el.data('replace-inner')).each(function( index ) {
             var $this = $(this);
             $this.html(data.noselector.html);
             new Function(data.noselector.js).call($this);
         });
+        }
     };
     Handlers.prototype.replaceClosestInner = function(e, $el, data) {
+        if (data.noselector) {
         $el.closest($el.data('replace-closest-inner')).each(function( index ) {
             var $this = $(this);
             $this.html(data.noselector.html);
             new Function(data.noselector.js).call($this);
         });
+        }
     };
     Handlers.prototype.append = function(e, $el, data) {
+        if (data.noselector) {
         $($el.data('append')).each(function( index ) {
             var $d = $(data.noselector.html);
             $(this).append($d);
             new Function(data.noselector.js).call($d);
         });
+        }
     };
     Handlers.prototype.prepend = function(e, $el, data) {
+        if (data.noselector) {
         $($el.data('prepend')).each(function( index ) {
             var $d = $(data.noselector.html);
             $(this).prepend($d);
             new Function(data.noselector.js).call($d);
         });
+        }
     };
     Handlers.prototype.refresh = function(e, $el) {
         $.each($($el.data('refresh')), function(index, value) {
             $.getJSON($(value).data('refresh-url'), function(data) {
+                if (data.noselector) {
                 $(value).each(function( index ) {
                     var $d = $(data.noselector.html);
                     $(this).replaceWith($d);
                     new Function(data.noselector.js).call($d);
                 });
+                }
             });
         });
     };
     Handlers.prototype.refreshClosest = function(e, $el) {
         $.each($($el.data('refresh-closest')), function(index, value) {
             $.getJSON($(value).data('refresh-url'), function(data) {
+                if (data.noselector) {
                 $el.closest($(value)).each(function( index ) {
                     var $d = $(data.noselector.html);
                     $(this).replaceWith($d);
                     new Function(data.noselector.js).call($d);
                 });
+                }
             });
         });
     };
