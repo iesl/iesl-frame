@@ -81,3 +81,4 @@ eclipse
 .settings
 .classpath
 .project
+/bin

@@ -8,6 +8,8 @@ object IeslPluginLoader extends Build {
   lazy val root = Project(id = "plugins", base = file("."))
     .settings(resolvers += "IESL Public Releases" at "http://dev-iesl.cs.umass.edu/nexus/content/groups/public")
     .settings(resolvers += "IESL Public Snapshots" at "http://dev-iesl.cs.umass.edu/nexus/content/groups/public-snapshots")
+    // .settings(resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns))
+
     .settings(addSbtPlugin("edu.umass.cs.iesl" %% "iesl-sbt-base" % "latest.release"))
     .settings(addSbtPlugin("play" %% "sbt-plugin" % "2.1.2"))
     //.settings(addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4"))

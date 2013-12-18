@@ -333,7 +333,7 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
   def userFromSSocialUser(implicit req: SecuredRequest[_]): Option[IFUser[T]] = {
     val ssuser = req.user
     for {
-      la :IFLinkedAccount[T] <- linkedAccountStore.findByProviderId(ssuser.userIdFromProvider.providerId, ssuser.userIdFromProvider.authId)
+      la :IFLinkedAccount[T] <- linkedAccountStore.findByProviderId(ssuser.identityId.providerId, ssuser.identityId.userId)
       u <- userStore.get(la.userId)
     } yield u
   }
@@ -341,7 +341,7 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
   def ouserFromSSocialUser(implicit req: RequestWithUser[_]): Option[IFUser[T]] = {
     for {
       ssuser <- req.user
-      la:IFLinkedAccount[T]  <- linkedAccountStore.findByProviderId(ssuser.userIdFromProvider.providerId, ssuser.userIdFromProvider.authId)
+      la:IFLinkedAccount[T]  <- linkedAccountStore.findByProviderId(ssuser.identityId.providerId, ssuser.identityId.userId)
       u <- userStore.get(la.userId)
     } yield u
   }

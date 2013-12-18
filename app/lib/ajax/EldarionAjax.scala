@@ -13,6 +13,8 @@ import org.fusesource.scalate.Utils
  */
 
 object EldarionAjax {
+  import scala.language.implicitConversions
+  
   implicit def toSelector(s: String) = EldarionAjaxExplicitSelector(s)
   
   //implicit def toAjaxResponseHtml(v: EldarionAjaxViewable) = EldarionAjaxResponseHtml(v)

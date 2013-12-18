@@ -80,7 +80,7 @@ object SessionMessageType {
 
 
 case class SessionMessageResult(result: PlainResult) {
-  def appendSession(key: String, value: String)(implicit request: Request[_]):PlainResult = result.withSession(request.session +(key, value))
+  def appendSession(key: String, value: String)(implicit request: Request[_]):PlainResult = result.withSession(request.session + (key -> value))
 
   // we store a list of flashing messages in the Session, naming them flash-0, flash-1, etc.
   // the value of each takes the form "type:message"
@@ -110,7 +110,7 @@ case class SessionMessageResult(result: PlainResult) {
 
 case class AjaxSessionMessageResult(result: AjaxResult) {
   
-  def appendSession(key: String, value: String)(implicit request: Request[_]): AjaxResult =  result.withSession(request.session +(key, value))
+  def appendSession(key: String, value: String)(implicit request: Request[_]): AjaxResult =  result.withSession(request.session + (key -> value))
 
   // we store a list of flashing messages in the Session, naming them flash-0, flash-1, etc.
   // the value of each takes the form "type:message"
@@ -139,6 +139,8 @@ case class AjaxSessionMessageResult(result: AjaxResult) {
 
 
 object SessionMessage {
+  import scala.language.implicitConversions
+  
   implicit def toRichAjaxResult[T <: AjaxResult
   ](result: T) = AjaxSessionMessageResult(result)
   implicit def toRichResult[T <: PlainResult](result: T) = SessionMessageResult(result)

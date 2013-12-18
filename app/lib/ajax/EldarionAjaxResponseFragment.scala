@@ -2,8 +2,6 @@ package lib.ajax
 
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json._
-import lib.ajax.EldarionAjaxViewable
-import lib.ajax.EldarionAjaxError
 import lib.ScalateOps
 
 /**

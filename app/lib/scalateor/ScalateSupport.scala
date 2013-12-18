@@ -66,6 +66,7 @@ trait ConfiguredScalateEngine {
 
 
 trait ScalateTemplateImplicits {
+  import scala.language.implicitConversions
   
   implicit def stringToConfig(uri: String)(
     implicit eng: CustomTemplateEngine
@@ -80,6 +81,7 @@ trait ScalateTemplateImplicits {
 }
 
 trait ScalateControllerImplicits {
+  import scala.language.implicitConversions
 
   implicit val defaultLayout = ScalateLayout("/layout/layout.jade")
 

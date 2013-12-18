@@ -33,7 +33,7 @@ object IeslFrameBuild extends Build {
 
     // it's OK for the webapp to depend on the mongo layer for now, even though it should be entirely independent
     // until the runtime wiring / cake baking
-    "net.openreview" %% "securesocial" % "latest.integration",
+    "securesocial" %% "securesocial" % "2.1.1",
 
     // todo : figure out which of these are not actually used locally
     // (I had to include them explicitly due to mysterious issues with transitive resolution)
@@ -56,7 +56,9 @@ object IeslFrameBuild extends Build {
   lazy val ieslFrame = {
     (play.Project("iesl-frame", vers, path = file("."))
       .ieslSetup(vers, deps, Public, WithSnapshotDependencies, org = organization, conflict = ConflictStrict)
-      .cleanLogging.standardLogging
+      .settings(
+        resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
+      ).cleanLogging.standardLogging
       )
   }
 

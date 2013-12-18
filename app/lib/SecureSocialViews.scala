@@ -26,6 +26,8 @@ import lib.scalateor.ScalateControllerSupport
 import status.{SessionMessage, Warning}
 
 class SecureSocialViews(application: Application) extends TemplatesPlugin with ScalateControllerSupport {
+	import scala.language.reflectiveCalls
+  
  def renderHtml(viewname:String, args:(Symbol, Any)*)(implicit request: RequestHeader, user:Option[IFUser[UUID]]=None): Html = {
    Html(
      ((s"${viewname}.jade").page sub (args:_*)).render
