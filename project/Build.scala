@@ -1,16 +1,8 @@
-import _root_.sbtassembly.Plugin.AssemblyKeys
-import edu.umass.cs.iesl.sbtbase.IeslProject.ConflictStrict
-import edu.umass.cs.iesl.sbtbase.IeslProject.Public
-import edu.umass.cs.iesl.sbtbase.IeslProject.WithSnapshotDependencies
 import sbt._
-import Keys._
-import edu.umass.cs.iesl.sbtbase.Dependencies
-import edu.umass.cs.iesl.sbtbase.IeslProject._
 import sbt.Keys._
-import Keys._
+import _root_.sbtassembly.Plugin.AssemblyKeys
 import edu.umass.cs.iesl.sbtbase.Dependencies
 import edu.umass.cs.iesl.sbtbase.IeslProject._
-
 import sbtassembly.Plugin._
 import AssemblyKeys._
 
@@ -56,10 +48,8 @@ object IeslFrameBuild extends Build {
   lazy val ieslFrame = {
     (play.Project("iesl-frame", vers, path = file("."))
       .ieslSetup(vers, deps, Public, WithSnapshotDependencies, org = organization, conflict = ConflictStrict)
-      .settings(
-        resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
-      ).cleanLogging.standardLogging
-      )
+      .cleanLogging.standardLogging
+    )
   }
 
 }
