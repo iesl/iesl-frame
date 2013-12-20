@@ -46,7 +46,6 @@ case class EldarionAjaxFragmentsResponse(elements: GenTraversable[EldarionAjaxRe
 
   def renderString(): String = {
     val result = Utils.prettyPrintJson(renderJs())
-    println(s"renderJs().result: ${result}")
     result
   }
 

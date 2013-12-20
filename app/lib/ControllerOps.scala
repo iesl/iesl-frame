@@ -9,39 +9,15 @@ import securesocial.core._
 
 import lib.scalateor._
 import scala.collection.GenTraversable
-import edu.umass.cs.iesl.scalacommons.NonemptyString
 import play.api.http.Status._
-import edu.umass.cs.iesl.scalacommons.NonemptyString
-import scala.Some
-import securesocial.core.SecuredRequest
-import securesocial.core.RequestWithUser
 import play.api.http.Writeable
 import play.api.http.HeaderNames._
-import edu.umass.cs.iesl.scalacommons.NonemptyString
-import scala.Some
-import play.api.mvc.SimpleResult
-import play.api.mvc.ResponseHeader
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.Results.Status
-import edu.umass.cs.iesl.scalacommons.NonemptyString
-import scala.Some
-import play.api.mvc.DiscardingCookie
-import play.api.mvc.ResponseHeader
-import securesocial.core.SecuredRequest
-import securesocial.core.RequestWithUser
 import play.api.mvc.Cookie
-import scala.Exception
 import play.api.libs.json.JsValue
 import lib.ajax._
-import lib.ajax.EldarionAjaxResponseFragment
-import lib.ajax.EldarionAjaxError
 import edu.umass.cs.iesl.scalacommons.NonemptyString
-import scala.Some
-import play.api.mvc.SimpleResult
-import play.api.mvc.DiscardingCookie
-import play.api.mvc.ResponseHeader
-import securesocial.core.SecuredRequest
-import securesocial.core.RequestWithUser
 import play.api.mvc.Cookie
 
 trait IFUser[T] {
@@ -348,7 +324,7 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
 
 }
 
-  trait ControllerOps extends Controller with Logging {
+trait ControllerOps extends Controller with Logging {
   type PlayRequest = play.api.mvc.Request[AnyContent]
 
  
@@ -365,8 +341,8 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
 
     import com.typesafe.plugin._
 
-    logger.debug("sending email to %s".format(recipient))
-    logger.debug("mail = [%s]".format(body))
+    logger.info("sending email to %s".format(recipient))
+    logger.info("mail = [%s]".format(body))
 
     val mail = use[MailerPlugin].email
     mail.setSubject(subject)
