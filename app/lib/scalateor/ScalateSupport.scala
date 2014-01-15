@@ -40,8 +40,8 @@ trait RunningPlayConfig extends NotRunningPlayConfig {
 }
 
 object engineFactory extends EngineContainer with RunningPlayConfig {
-  override def mode: ScalateMode = _mode
-  var _mode: ScalateMode = DevMode
+  // override def mode: ScalateMode = _mode
+  // var _mode: ScalateMode = DevMode
 
   // play.mode match ...
   def configurator: EngineLike => Unit = {
@@ -51,6 +51,17 @@ object engineFactory extends EngineContainer with RunningPlayConfig {
   val templateEngine = configureEngine {
     eng =>
   }
+
+  //val eng = engineFactory.configureEngine { eng =>
+  //    // This is the default resource loader, just here to show how to override it:
+  //    eng.resourceLoader = CustomResourceLoader(
+  //      sourceDirectories = List(file("scalate-core-plus/src/main/scalate")), // list of files (dirs) in which to search for templates
+  //      classloader = this.getClass.getClassLoader(), // 
+  //      resourcePrefix = "scalate" // subdirectory withing src/../resources/ directory to look for templates
+  //    )
+  //  }
+
+  
 }
 
 trait ConfiguredScalateEngine {
@@ -86,7 +97,7 @@ trait ScalateControllerImplicits {
   implicit val defaultLayout = ScalateLayout("/layout/layout.jade")
 
   // no need for ".template", except to avoid ambiguous implicits vs. the Ajax versions.
-  // OK, but gall it ".page" instead to highlight the fact that these are not ajax.
+  // OK, but call it ".page" instead to highlight the fact that these are not ajax.
 
   implicit def stringToConfigOps(uri: String)(
     implicit eng: CustomTemplateEngine, request: RequestHeader, layout: ScalateLayout, userOpt: Option[IFUser[UUID]] = None

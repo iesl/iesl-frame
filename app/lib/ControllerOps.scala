@@ -168,18 +168,18 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
 
   def maybeImpersonateAction[A](ouser: Option[IFUser[T]])(f: Request[A] => Option[IFUser[T]] => Result)(implicit req: Request[A]): Result = {
     try {
-    (for {
-      mainUser <- ouser
-      otherUser <- req.session.get(ImpersonateUserKey)
-      if authorizedToImpersonate(mainUser)
-      impUser <- userStore.getByStringId(otherUser)
-    } yield {
-      val result = f(req)(Some(impUser))
-      result
-    }).getOrElse {
-      val result =  f(req)(ouser)
-      result
-    }
+      (for {
+        mainUser <- ouser
+        otherUser <- req.session.get(ImpersonateUserKey)
+        if authorizedToImpersonate(mainUser)
+        impUser <- userStore.getByStringId(otherUser)
+      } yield {
+        val result = f(req)(Some(impUser))
+        result
+      }).getOrElse {
+        val result =  f(req)(ouser)
+        result
+      }
     }
     catch {
       case e: Throwable => {
@@ -188,42 +188,6 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
       }
     }
   }
-
-  /*
-    def maybeImpersonateUploadAction[A](ouser: Option[User])(f: Request[A] => Option[User] => Result)(implicit req:
-    SecuredRequest[A]): Result = {
-      (for {
-        mainUser <- ouser
-        otherUser <- req.session.get(ImpersonateUserKey)
-        if authorizedToImpersonate(mainUser)
-        impUser <- userStore.get(UUID.fromString(otherUser))
-      } yield {
-        f(req)(Some(impUser))
-      }).getOrElse {
-        f(req)(ouser)
-      }
-    }
-  */
-
-  /*
-  def UploadUserAction(f: Request[MultipartFormData[TemporaryFile]] => Option[User] => Result): Action[MultipartFormData[TemporaryFile]] =
-    SecuredAction(true, None, parse.multipartFormData, None) {
-      implicit req: SecuredRequest[MultipartFormData[TemporaryFile]] => {
-        try {
-          logger.trace("Executing secured Ajax action")
-          logger.trace(req.toString())
-          val result = maybeImpersonateAction[MultipartFormData[TemporaryFile]](userFromSSocialUser)(f)(req)
-          result
-        }
-        catch {
-          case e: Throwable => {
-            e.printStackTrace()
-            throw e
-          }
-        }
-      }
-    }
-    */
 
   def UserAction(f: Request[AnyContent] => Option[IFUser[T]] => Result): Action[AnyContent] =
     SecuredAction {
@@ -274,22 +238,6 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
       }
     }
 
-  // is this used anywhere?
-  /*
-  def UserAction[A](
-    bparser: BodyParser[A]
-  )(f: Request[A] => Option[IFUser[T]] => Result) = SecuredAction(
-    ajaxCall = false,
-    authorize = None,
-    p = bparser
-  ) {
-    implicit req => {
-      logger.trace(req.toString())
-      val result = maybeImpersonateAction(userFromSSocialUser)(f)(req)
-      result
-    }
-  }
-  */
 
   def OptUserAction(f: Request[AnyContent] => Option[IFUser[T]] => Result) = UserAwareAction {
     implicit req =>
