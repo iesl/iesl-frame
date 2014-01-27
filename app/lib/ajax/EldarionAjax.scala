@@ -3,7 +3,7 @@ package lib.ajax
 import lib.ScalateOps
 import play.api.libs.json.Json._
 import scala.Some
-import scala.collection.GenTraversable
+import scala.collection.Traversable
 import play.api.libs.json.JsValue
 import play.api.mvc.Codec
 import org.fusesource.scalate.Utils
@@ -25,7 +25,7 @@ object EldarionAjax {
 
   //implicit def errorToViewable(x: EldarionAjaxError) = EldarionAjaxErrorViewable(x.message, "")
 
-  //implicit def fragmentsToSet(elements: GenTraversable[EldarionAjaxResponseElement]) = new EldarionAjaxFragmentsResponse(elements)
+  //implicit def fragmentsToSet(elements: Traversable[EldarionAjaxResponseElement]) = new EldarionAjaxFragmentsResponse(elements)
 }
 
 
@@ -92,13 +92,13 @@ trait EldarionAjaxResponseEncodings {
   // convenience since we can't use chained implicits
 
   /*
-  implicit def writeableOf_AjaxResponseElementSet(implicit codec: Codec): Writeable[GenTraversable[EldarionAjaxResponseElement]] =
-    Writeable[GenTraversable[EldarionAjaxResponseElement]]((elements: GenTraversable[EldarionAjaxResponseElement]) => {
+  implicit def writeableOf_AjaxResponseElementSet(implicit codec: Codec): Writeable[Traversable[EldarionAjaxResponseElement]] =
+    Writeable[Traversable[EldarionAjaxResponseElement]]((elements: Traversable[EldarionAjaxResponseElement]) => {
       codec.encode(EldarionAjaxFragmentsResponse(elements).renderString())
     })
 
-  implicit def contentTypeOf_AjaxResponseElementSet(implicit codec: Codec): ContentTypeOf[GenTraversable[EldarionAjaxResponseElement]] =
-    ContentTypeOf[GenTraversable[EldarionAjaxResponseElement]](Some(ContentTypes.JSON))
+  implicit def contentTypeOf_AjaxResponseElementSet(implicit codec: Codec): ContentTypeOf[Traversable[EldarionAjaxResponseElement]] =
+    ContentTypeOf[Traversable[EldarionAjaxResponseElement]](Some(ContentTypes.JSON))
 */
   
   implicit def writeableOf_AjaxResponse(implicit codec: Codec): Writeable[EldarionAjaxResponse] =
@@ -111,6 +111,6 @@ trait EldarionAjaxResponseEncodings {
 
 
   
-  //implicit def toAjaxResponse(elements : GenSet[EldarionAjaxResponseElement]) : EldarionAjaxResponse = EldarionAjaxResponse(elements)
+  //implicit def toAjaxResponse(elements : Set[EldarionAjaxResponseElement]) : EldarionAjaxResponse = EldarionAjaxResponse(elements)
   //implicit def toAjaxResponse(element : EldarionAjaxResponseElement) : EldarionAjaxResponse = EldarionAjaxResponse(Set(element))
 }

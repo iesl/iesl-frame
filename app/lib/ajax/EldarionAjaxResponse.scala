@@ -2,7 +2,7 @@ package lib.ajax
 
 import org.fusesource.scalate.Utils
 import play.api.libs.json.Json._
-import scala.collection.GenTraversable
+import scala.collection.Traversable
 import play.api.libs.json.JsValue
 import scala.collection
 
@@ -24,8 +24,8 @@ case class EldarionAjaxRedirect(location: String) extends EldarionAjaxResponse {
 }
 
 
-// use GenTraversable instead of GenSet because GenSet is not covariant (!?)
-case class EldarionAjaxFragmentsResponse(elements: GenTraversable[EldarionAjaxResponseFragment]) extends EldarionAjaxResponse {
+// use Traversable instead of Set because Set is not covariant (!?)
+case class EldarionAjaxFragmentsResponse(elements: Traversable[EldarionAjaxResponseFragment]) extends EldarionAjaxResponse {
   // constraint that there can be only one html is not enforced by type; if multiple are provided, one is picked.
   val noselector: Option[JsValue] = elements.find(
     e => e.target == TemplateDecidesTarget).headOption.map(e => e.renderJs())
@@ -34,14 +34,14 @@ case class EldarionAjaxFragmentsResponse(elements: GenTraversable[EldarionAjaxRe
     case EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(s, pos), v) => (s, pos, v.renderJs())
   })
 
-  val elementsGrouped = elementsRendered.groupBy(_._2).mapValues(x => x.map(y => (y._1, y._3)).seq.toMap)
+  val elementsGrouped = elementsRendered.groupBy(_._2).mapValues(x => x.map(y => (y._1, y._3)).toMap)
 
   def renderJs(): JsValue = { 
     toJson(elementsGrouped.map({
       case (k, v) => {
         k.key -> toJson(v)
       }
-    }).seq.toMap ++ noselector.map(s => "noselector" -> s))
+    }).toMap ++ noselector.map(s => "noselector" -> s))
   }
 
   def renderString(): String = {

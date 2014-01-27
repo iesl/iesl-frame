@@ -8,7 +8,7 @@ import play.api.mvc._
 import securesocial.core._
 
 import lib.scalateor._
-import scala.collection.GenTraversable
+import scala.collection.Traversable
 import play.api.http.Status._
 import play.api.http.Writeable
 import play.api.http.HeaderNames._
@@ -27,8 +27,8 @@ trait IFUser[T] {
 trait IFUserStore[T] {
   def get(id:T) : Option[IFUser[T]]
   def getByStringId(id:String) : Option[IFUser[T]]
-  def findByEmail(s: String): GenTraversable[IFUser[T]]
-  def findBySubstring(s: String): GenTraversable[IFUser[T]]
+  def findByEmail(s: String): Traversable[IFUser[T]]
+  def findBySubstring(s: String): Traversable[IFUser[T]]
 }
 
 trait IFLinkedAccount[T] {
