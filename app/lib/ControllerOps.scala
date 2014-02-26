@@ -177,9 +177,9 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
     def apply[C](content: C)(implicit writeable: Writeable[C]) : AjaxOk = new AjaxOk(content)(writeable)
   }
   */
+  import EldarionAjax._
   def AjaxUserAction[C](f: Request[AnyContent] => Option[IFUser[T]] => AjaxResult): Action[AnyContent] =
     SecuredAction {
-      import EldarionAjax._
       implicit req => {
         try {
           logger.trace("Executing secured AJAX action")
@@ -246,23 +246,23 @@ trait ControllerOps extends Controller with Logging {
     "http" + (if (secure) "s" else "") + "://" + serverHostname + urlPath
   }
 
-  def sendEmail(subject: String, recipient: NonemptyString, body: String, fromAddress: Option[String]) {
-
-    import com.typesafe.plugin._
-
-    logger.info("sending email to %s".format(recipient))
-    logger.info("mail = [%s]".format(body))
-
-    val mail = use[MailerPlugin].email
-    mail.setSubject(subject)
-    mail.addRecipient(recipient.s)
-    mail.addFrom(fromAddress.getOrElse(defaultFromAddress))
-    mail.send(body)
-  }
+  //def sendEmail(subject: String, recipient: NonemptyString, body: String, fromAddress: Option[String]) {
+  // 
+  //  import com.typesafe.plugin._
+  // 
+  //  logger.info("sending email to %s".format(recipient))
+  //  logger.info("mail = [%s]".format(body))
+  // 
+  //  val mail = use[MailerPlugin].email
+  //  mail.setSubject(subject)
+  //  mail.addRecipient(recipient.s)
+  //  mail.addFrom(fromAddress.getOrElse(defaultFromAddress))
+  //  mail.send(body)
+  //}
 
 }
 
 
-object ControllerOps extends ControllerOps {
-}
+object ControllerOps extends ControllerOps
+
 
