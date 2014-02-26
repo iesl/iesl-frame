@@ -53,7 +53,9 @@ Any error messages (e.g. "not authorized" etc. must be provided as ajax fragment
 Jump through hoops to enforce this with types.
  */
 
-class AjaxResult(_header: ResponseHeader, _body: Enumerator[EldarionAjaxResponse])(implicit val _writeable: Writeable[EldarionAjaxResponse]) extends SimpleResult[EldarionAjaxResponse](_header,_body)(_writeable) {
+// class AjaxResult(_header: ResponseHeader, _body: Enumerator[EldarionAjaxResponse])(implicit val _writeable: Writeable[EldarionAjaxResponse]) extends SimpleResult(_header,_body)(_writeable) {
+
+class AjaxResult(_header: ResponseHeader, _body: Enumerator[Array[Byte]]) extends SimpleResult(_header,_body) {
 
   override def withSession(session: Session): AjaxResult = {
     if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
@@ -78,47 +80,6 @@ class AjaxResult(_header: ResponseHeader, _body: Enumerator[EldarionAjaxResponse
 }
 
 
-// this seems like it should work fine, but somewhere Play swallows an error that I couldn't diagnose.  Backtracking...
-/*
-case class AjaxResult(header: ResponseHeader, body: Enumerator[EldarionAjaxResponse])(implicit val writeable: Writeable[EldarionAjaxResponse]) extends PlainResult {
-
-  override def withSession(session: Session): AjaxResult = {
-    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
-  }
-
-  override def withCookies(cookies: Cookie*): AjaxResult = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
-  }
-
-  override def discardingCookies(cookies: DiscardingCookie*): AjaxResult = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
-  }
-  
-  /** The body content type. */
-  type BODY_CONTENT = EldarionAjaxResponse
-
-  /**
-   * Adds headers to this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withHeaders(ETAG -> "0")
-   * }}}
-   *
-   * @param headers the headers to add to this result.
-   * @return the new result
-   */
-  def withHeaders(headers: (String, String)*) : AjaxResult = {
-    copy(header = header.copy(headers = header.headers ++ headers))
-  }
-
-  override def toString = {
-    "AjaxResult(" + header + ")"
-  }
-
-}
-*/
-
 object AjaxOk {
    /*def apply(content: EldarionAjaxResponse)(implicit writeable: Writeable[EldarionAjaxResponse]): AjaxResult = {
     new AjaxResult(
@@ -127,7 +88,7 @@ object AjaxOk {
   }*/
 
   def apply(fragments: EldarionAjaxResponseFragment*)(implicit writeable: Writeable[EldarionAjaxResponse]): AjaxResult = {
-    val content = new EldarionAjaxFragmentsResponse(fragments) //.renderJs()
+    val content = new EldarionAjaxFragmentsResponse(fragments).renderString.getBytes
     new AjaxResult(
       ResponseHeader(OK, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
       Enumerator(content))
@@ -143,7 +104,7 @@ object AjaxRedirect {
  }*/
 
   def apply(location:String)(implicit writeable: Writeable[EldarionAjaxResponse]): AjaxResult = {
-    val content = new EldarionAjaxRedirect(location) //.renderJs()
+    val content = new EldarionAjaxRedirect(location).renderString.getBytes
     new AjaxResult(
       ResponseHeader(OK, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
       Enumerator(content))

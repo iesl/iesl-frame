@@ -79,18 +79,18 @@ object SessionMessageType {
 }
 
 
-case class SessionMessageResult(result: PlainResult) {
-  def appendSession(key: String, value: String)(implicit request: Request[_]):PlainResult = result.withSession(request.session + (key -> value))
+case class SessionMessageResult(result: SimpleResult) {
+  def appendSession(key: String, value: String)(implicit request: Request[_]):SimpleResult = result.withSession(request.session + (key -> value))
 
   // we store a list of flashing messages in the Session, naming them flash-0, flash-1, etc.
   // the value of each takes the form "type:message"
 
-  def clearSessionMessages(implicit request: Request[_]): PlainResult = {
+  def clearSessionMessages(implicit request: Request[_]): SimpleResult = {
     val current = request.session.data.filterKeys(_.startsWith("sessionmessage-"))
     result.withSession(current.keys.foldLeft(request.session)((s, k) => s - k))
   }
 
-  private def withStickySessionMessage(f: SessionMessageType, value: String)(implicit request: Request[_]): PlainResult = {
+  private def withStickySessionMessage(f: SessionMessageType, value: String)(implicit request: Request[_]): SimpleResult = {
     val current = request.session.data.filterKeys(_.startsWith("sessionmessage-"))
     val currentKeyNumbers: Iterable[Int] = current.keys.map(_.substring(15).toInt)
     val maxKey = if(currentKeyNumbers.nonEmpty) currentKeyNumbers.max else 0
@@ -98,13 +98,13 @@ case class SessionMessageResult(result: PlainResult) {
     appendSession("sessionmessage-" + (maxKey + 1), f.key + ":" + value)
   }
 
-  def success(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Success, value)
+  def success(value: String)(implicit request: Request[_]): SimpleResult = withStickySessionMessage(Success, value)
 
-  def info(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Info, value)
+  def info(value: String)(implicit request: Request[_]): SimpleResult = withStickySessionMessage(Info, value)
 
-  def warning(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Warning, value)
+  def warning(value: String)(implicit request: Request[_]): SimpleResult = withStickySessionMessage(Warning, value)
 
-  def error(value: String)(implicit request: Request[_]): PlainResult = withStickySessionMessage(Error, value)
+  def error(value: String)(implicit request: Request[_]): SimpleResult = withStickySessionMessage(Error, value)
 }
 
 
@@ -115,7 +115,7 @@ case class AjaxSessionMessageResult(result: AjaxResult) {
   // we store a list of flashing messages in the Session, naming them flash-0, flash-1, etc.
   // the value of each takes the form "type:message"
 
-  def clearSessionMessages(implicit request: Request[_]): PlainResult  = {
+  def clearSessionMessages(implicit request: Request[_]): SimpleResult  = {
     val current = request.session.data.filterKeys(_.startsWith("sessionmessage-"))
     result.withSession(current.keys.foldLeft(request.session)((s, k) => s - k))
   }
@@ -143,7 +143,7 @@ object SessionMessage {
   
   implicit def toRichAjaxResult[T <: AjaxResult
   ](result: T) = AjaxSessionMessageResult(result)
-  implicit def toRichResult[T <: PlainResult](result: T) = SessionMessageResult(result)
+  implicit def toRichResult[T <: SimpleResult](result: T) = SessionMessageResult(result)
 
   private final val p = "(.*?):(.*)".r
 
