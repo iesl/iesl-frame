@@ -25,8 +25,26 @@ import ControllerOps._
 import lib.scalateor.ScalateControllerSupport
 import status.{SessionMessage, Warning}
 
-class SecureSocialViews(application: Application) extends TemplatesPlugin with ScalateControllerSupport {
+import play.api.{Logger, Plugin, Application}
+import org.fusesource.scalate._
+
+class ScalateEnginePlugin(application: Application) extends Plugin {
+
+  var _engine: CustomTemplateEngine = null
+
+  def engine: CustomTemplateEngine = if (_engine == null) sys.error("scalate engine plugin: engine not set")
+                                     else _engine
+}
+
+class SecureSocialViews(implicit application: Application) extends TemplatesPlugin with ScalateControllerSupport {
 	import scala.language.reflectiveCalls
+
+  implicit def customEngine: CustomTemplateEngine = 
+    core.use[ScalateEnginePlugin].map(_.engine).getOrElse(sys.error("no scalate engine plugin installed"))
+
+  implicit def templateEngine: EngineLike = 
+    core.use[ScalateEnginePlugin].map(_.engine).getOrElse(sys.error("no scalate engine plugin installed"))
+
   
  def renderHtml(viewname:String, args:(Symbol, Any)*)(implicit request: RequestHeader, user:Option[IFUser[UUID]]=None): Html = {
    Html(

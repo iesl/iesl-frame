@@ -18,61 +18,62 @@ import lib.ajax.EldarionAjaxResponseEncodings
 
 
 
-trait NotRunningPlayConfig extends ScalateConfig {
-  override def templateRootPaths: Seq[File] = Seq(getFile("/app/templates"))
-}
-
-trait RunningPlayConfig extends NotRunningPlayConfig {
-
-  import play.api.Configuration
-  import play.api.Play.current
-
-  def conf: Configuration = Play.configuration
-
-  override def mode: ScalateMode = Play.mode match {
-    case Mode.Dev => DevMode
-    case Mode.Prod => ProductionMode
-  }
-
-  override def getFile(s: String): java.io.File = Play.getFile(s)
-
-  override def classloader: java.lang.ClassLoader = Play.classloader
-}
-
-object engineFactory extends EngineContainer with RunningPlayConfig {
-  // override def mode: ScalateMode = _mode
-  // var _mode: ScalateMode = DevMode
-
-  // play.mode match ...
-  def configurator: EngineLike => Unit = {
-    e => ()
-  }
-
-  val templateEngine = configureEngine {
-    eng =>
-  }
-
-  //val eng = engineFactory.configureEngine { eng =>
-  //    // This is the default resource loader, just here to show how to override it:
-  //    eng.resourceLoader = CustomResourceLoader(
-  //      sourceDirectories = List(file("scalate-core-plus/src/main/scalate")), // list of files (dirs) in which to search for templates
-  //      classloader = this.getClass.getClassLoader(), // 
-  //      resourcePrefix = "scalate" // subdirectory withing src/../resources/ directory to look for templates
-  //    )
-  //  }
-
-  
-}
+//trait NotRunningPlayConfig extends ScalateConfig {
+//  override def templateRootPaths: Seq[File] = Seq(getFile("/app/templates"))
+//}
+// 
+//trait RunningPlayConfig extends NotRunningPlayConfig {
+// 
+//  import play.api.Configuration
+//  import play.api.Play.current
+// 
+//  def conf: Configuration = Play.configuration
+// 
+//  override def mode: ScalateMode = Play.mode match {
+//    case Mode.Dev => DevMode
+//    case Mode.Prod => ProductionMode
+//  }
+// 
+//  override def getFile(s: String): java.io.File = Play.getFile(s)
+// 
+//  override def classloader: java.lang.ClassLoader = Play.classloader
+//}
+// 
+//object engineFactory extends EngineContainer with RunningPlayConfig {
+//  // override def mode: ScalateMode = _mode
+//  // var _mode: ScalateMode = DevMode
+// 
+//  // play.mode match ...
+//  def configurator: EngineLike => Unit = {
+//    e => ()
+//  }
+// 
+//  val templateEngine = configureEngine {
+//    eng =>
+//  }
+// 
+//  //val eng = engineFactory.configureEngine { eng =>
+//  //    // This is the default resource loader, just here to show how to override it:
+//  //    eng.resourceLoader = CustomResourceLoader(
+//  //      sourceDirectories = List(file("scalate-core-plus/src/main/scalate")), // list of files (dirs) in which to search for templates
+//  //      classloader = this.getClass.getClassLoader(), // 
+//  //      resourcePrefix = "scalate" // subdirectory withing src/../resources/ directory to look for templates
+//  //    )
+//  //  }
+// 
+//  
+//}
 
 trait ConfiguredScalateEngine {
-  implicit def templateEngine = {
-    engineFactory.templateEngine.reportConfig()
-    engineFactory.templateEngine
-  }
-
+  //implicit def templateEngine = {
+  //  engineFactory.templateEngine.reportConfig()
+  //  engineFactory.templateEngine
+  //}
+ 
   // TODO Fix this!!!!
-  implicit def customEngine = templateEngine.asInstanceOf[CustomTemplateEngine]
-
+  // implicit def customEngine = templateEngine.asInstanceOf[CustomTemplateEngine]
+  def customEngine: CustomTemplateEngine
+ 
 }
 
 
@@ -94,14 +95,14 @@ trait ScalateTemplateImplicits {
 trait ScalateControllerImplicits {
   import scala.language.implicitConversions
 
-  implicit val defaultLayout = ScalateLayout("/layout/layout.jade")
+  implicit def defaultLayout = ScalateLayout("/layout/layout.jade")
 
   // no need for ".template", except to avoid ambiguous implicits vs. the Ajax versions.
   // OK, but call it ".page" instead to highlight the fact that these are not ajax.
 
   implicit def stringToConfigOps(uri: String)(
     implicit eng: CustomTemplateEngine, request: RequestHeader, layout: ScalateLayout, userOpt: Option[IFUser[UUID]] = None
-    ) = new {
+  ) = new {
     def page: ViewConfig = {
 
       val baseAttrs: Seq[(String, Any)] = Seq(
@@ -121,7 +122,7 @@ trait ScalateControllerImplicits {
 
   implicit def anyRefToConfigOps(model: AnyRef)(
     implicit eng: CustomTemplateEngine, request: RequestHeader, layout: ScalateLayout, userOpt: Option[IFUser[UUID]] = None
-    ) = new {
+  ) = new {
     def page: ModelConfig = {
       val baseAttrs: Seq[(String, Any)] = Seq(
         "userOpt" -> userOpt,
@@ -145,26 +146,26 @@ trait TemplateSupport extends ConfiguredScalateEngine with ScalateTemplateImplic
 
 trait ScalateControllerSupport extends ConfiguredScalateEngine with ScalateResponseEncodings with EldarionAjaxResponseEncodings with ScalateControllerImplicits
 
-object ScalateApp {
-
-  import java.io.File
-
-  object factory extends ScalateEngineFactory with NotRunningPlayConfig {
-    override def getFile(s: String): File = new File(new File("./prj-openreview-front/"), s)
-
-    override def classloader: java.lang.ClassLoader = Thread.currentThread.getContextClassLoader()
-
-    override val mode: ScalateMode = PrecompileMode
-
-    val templateEngine = configureEngine {
-      eng =>
-    }
-  }
-
-  val engine = factory.templateEngine
-
-  def main(args: Array[String]) {
-    engine.precompileAll()
-  }
-
-}
+//object ScalateApp {
+// 
+//  import java.io.File
+// 
+//  object factory extends ScalateEngineFactory with NotRunningPlayConfig {
+//    override def getFile(s: String): File = new File(new File("./prj-openreview-front/"), s)
+// 
+//    override def classloader: java.lang.ClassLoader = Thread.currentThread.getContextClassLoader()
+// 
+//    override val mode: ScalateMode = PrecompileMode
+// 
+//    val templateEngine = configureEngine {
+//      eng =>
+//    }
+//  }
+// 
+//  val engine = factory.templateEngine
+// 
+//  def main(args: Array[String]) {
+//    engine.precompileAll()
+//  }
+// 
+//}
