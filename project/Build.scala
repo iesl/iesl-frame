@@ -1,10 +1,7 @@
 import sbt._
 import sbt.Keys._
-//import _root_.sbtassembly.Plugin.AssemblyKeys
 import edu.umass.cs.iesl.sbtbase.Dependencies
 import edu.umass.cs.iesl.sbtbase.IeslProject._
-// import sbtassembly.Plugin._
-// import AssemblyKeys._
 
 import play.Project._
 
@@ -23,19 +20,15 @@ object IeslFrameBuild extends Build {
     "org.mindrot" % "jbcrypt" % "0.3m",
     "org.ccil.cowan.tagsoup" % "tagsoup" % "latest.release",
     
-    // it's OK for the webapp to depend on the mongo layer for now, even though it should be entirely independent
-    // until the runtime wiring / cake baking
     "ws.securesocial" %% "securesocial" % "2.1.3",
 
-    // todo : figure out which of these are not actually used locally
-    // (I had to include them explicitly due to mysterious issues with transitive resolution)
     "net.openreview" %% "scalate-core" % "latest.integration",
     "net.openreview" %% "scalate-core-plus" % "latest.integration",
     "net.openreview" %% "scalate-util" % "latest.integration",
 
     scalaCompiler() ,
     scalaIoFile() ,
-    scalazCore() ,
+    "org.scalaz" %% "scalaz-core" % "7.0.5",
     scalatime() ,
     ieslScalaCommons("latest.integration") ,
 
