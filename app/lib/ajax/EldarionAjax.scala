@@ -2,7 +2,6 @@ package lib.ajax
 
 import lib.ScalateOps
 import play.api.libs.json.Json._
-import scala.Some
 import scala.collection.Traversable
 import play.api.libs.json.JsValue
 import play.api.mvc.Codec

@@ -37,11 +37,13 @@ case class EldarionAjaxJsOnly(javascript: String) extends EldarionAjaxViewable {
 }
 
 case class EldarionAjaxErrorViewable(message: String, javascript: String, args: (Symbol, Any)*) extends EldarionAjaxViewable { //extends EldarionAjaxResponseElement {
-// hmm, our eldarion-ajax interface shouldn't assume that the site uses bootstrap.  Alternative is to render a scalate error template.  Fine, but too much hassle for now.
-// also note we don't know what the calling template will do with returned HTML; it might just be ignored.
-// need to add an "error" type, parallel to "html", to the eldarion-ajax stuff.
-//def render(): JsValue = toJson(Map("html"->s"<div class='alert alert-error'>$message</div>"))
-val it = EldarionAjaxError(message)
+
+  // hmm, our eldarion-ajax interface shouldn't assume that the site uses bootstrap.  Alternative is to render a
+  //    scalate error template.  Fine, but too much hassle for now.
+  // also note we don't know what the calling template will do with returned HTML; it might just be ignored.
+  // need to add an "error" type, parallel to "html", to the eldarion-ajax stuff.
+  //def render(): JsValue = toJson(Map("html"->s"<div class='alert alert-error'>$message</div>"))
+  val it = EldarionAjaxError(message)
 
   def renderJs(): JsValue = toJson(Map("error" -> ScalateOps.viewHtml(it)(args: _*), "js" -> javascript))
 }

@@ -172,11 +172,8 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
 
   case class NotAuthorizedException(s: String = "") extends Exception(s)
   case class NotFoundException(s: String = "") extends Exception(s)
-  /*
-  object AjaxOk {
-    def apply[C](content: C)(implicit writeable: Writeable[C]) : AjaxOk = new AjaxOk(content)(writeable)
-  }
-  */
+
+
   import EldarionAjax._
   def AjaxUserAction[C](f: Request[AnyContent] => Option[IFUser[T]] => AjaxResult): Action[AnyContent] =
     SecuredAction {
