@@ -2,7 +2,6 @@ package lib.ajax
 
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json._
-import lib.ScalateOps
 
 /**
   * Anything that can be rendered as html inside json, and possibly highlighted
@@ -16,7 +15,7 @@ import lib.ScalateOps
 /**
  * @author <a href="mailto:dev@davidsoergel.com">David Soergel</a>
  */
-case class EldarionAjaxResponseFragment(target:EldarionAjaxTarget, v: EldarionAjaxViewable) { //textends EldarionAjaxResponseElement {
+case class EldarionAjaxResponseFragment(target:EldarionAjaxTarget, v: AjaxViewable) { //textends EldarionAjaxResponseElement {
   def renderJs(): JsValue = v.renderJs()
 }
 

@@ -1,10 +1,29 @@
 package lib.ajax
 
-import org.fusesource.scalate.Utils
 import play.api.libs.json.Json._
 import scala.collection.Traversable
 import play.api.libs.json.JsValue
 import scala.collection
+
+object Utils {
+
+  import org.json4s._
+  import org.json4s.native.JsonMethods
+  import play.api.libs.json.{JsValue, Json}
+  
+  def playJsonToLiftJson(jsval: JsValue): JValue = {
+    JsonMethods.parse(
+      Json.stringify(jsval),
+      useBigDecimalForDouble = false)
+  }
+
+  def prettyPrintJson(jsval: JsValue): String = {
+    org.json4s.native.Printer.pretty(
+      JsonMethods.render(playJsonToLiftJson(jsval))
+    )
+  }
+
+}
 
 /**
  * @author <a href="mailto:dev@davidsoergel.com">David Soergel</a>

@@ -7,7 +7,7 @@ import play.api.libs.json.JsValue
  * A location on the page where the html will go.  Typically combines a selector and a position.
  */
 trait EldarionAjaxTarget {
-  def apply(v:EldarionAjaxViewable) = new EldarionAjaxResponseFragment(this, v)
+  def apply(v:AjaxViewable) = new EldarionAjaxResponseFragment(this, v)
 }
 
 /**
@@ -21,21 +21,21 @@ case class EldarionAjaxExplicitSelector(selector: String, selectClosest: Boolean
 
   def closest = EldarionAjaxExplicitSelector(selector, true)
 
-  def replaceWith(v: EldarionAjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) ReplaceClosest else Replace), v)
+  def replaceWith(v: AjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) ReplaceClosest else Replace), v)
 
-  def replaceInside(v: EldarionAjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) InnerClosest else Inner), v)
+  def replaceInside(v: AjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) InnerClosest else Inner), v)
 
-  def prepend(v: EldarionAjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) PrependClosest else Prepend), v)
+  def prepend(v: AjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) PrependClosest else Prepend), v)
 
-  def append(v: EldarionAjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) AppendClosest else Append), v)
+  def append(v: AjaxViewable) = new EldarionAjaxResponseFragment(EldarionAjaxExplicitTarget(selector, if (selectClosest) AppendClosest else Append), v)
 
-  def <>(v: EldarionAjaxViewable) = replaceWith(v)
+  def <>(v: AjaxViewable) = replaceWith(v)
 
-  def ><(v: EldarionAjaxViewable) = replaceInside(v)
+  def ><(v: AjaxViewable) = replaceInside(v)
 
-  def <<(v: EldarionAjaxViewable) = prepend(v)
+  def <<(v: AjaxViewable) = prepend(v)
 
-  def >>(v: EldarionAjaxViewable) = append(v)
+  def >>(v: AjaxViewable) = append(v)
 }
 
 

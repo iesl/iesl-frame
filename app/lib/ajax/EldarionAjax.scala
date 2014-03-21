@@ -1,27 +1,26 @@
 package lib.ajax
 
-import lib.ScalateOps
 import play.api.libs.json.Json._
 import scala.collection.Traversable
 import play.api.libs.json.JsValue
 import play.api.mvc.Codec
-import org.fusesource.scalate.Utils
+
 
 /**
  * @author <a href="mailto:dev@davidsoergel.com">David Soergel</a>
  */
 
-object EldarionAjax {
-  import scala.language.implicitConversions
-  
-  implicit def toSelector(s: String) = EldarionAjaxExplicitSelector(s)
-  
-
-  def html(s:String) = EldarionAjaxString(s)
-  implicit def view(it: AnyRef) = EldarionAjaxScalateViewable(it, "index", "")
-  def exec(js:String) = EldarionAjaxJsOnly(js)
-
-}
+//object EldarionAjax {
+//  import scala.language.implicitConversions
+//  
+//  implicit def toSelector(s: String) = EldarionAjaxExplicitSelector(s)
+//  
+// 
+//  def html(s:String) = HtmlString(s)
+//  implicit def view(it: AnyRef) = EldarionAjaxViewableModel(it, "index", "")
+//  def exec(js:String) = EldarionAjaxJsOnly(js)
+// 
+//}
 
 
 trait EldarionAjaxResponseEncodings {

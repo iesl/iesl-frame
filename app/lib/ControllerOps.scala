@@ -7,7 +7,7 @@ import play.api.Play.current
 import play.api.mvc._
 import securesocial.core._
 
-import lib.scalateor._
+//import lib.scalateor._
 import scala.collection.Traversable
 import play.api.http.Status._
 import play.api.http.Writeable
@@ -116,7 +116,8 @@ object UserControllerOps {
   val ImpersonateUserKey = "impersonate.user.id"
 }
 
-trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateControllerSupport with Logging {
+//trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateControllerSupport with Logging {
+trait UserControllerOps[T] extends ControllerOps with SecureSocial with CustomHtmlTags with AjaxModule with Logging {
   import UserControllerOps._
   
   def userStore : IFUserStore[T]
@@ -173,8 +174,7 @@ trait UserControllerOps[T] extends ControllerOps with SecureSocial with ScalateC
   case class NotAuthorizedException(s: String = "") extends Exception(s)
   case class NotFoundException(s: String = "") extends Exception(s)
 
-
-  import EldarionAjax._
+  //import EldarionAjax._
   def AjaxUserAction[C](f: Request[AnyContent] => Option[IFUser[T]] => AjaxResult): Action[AnyContent] =
     SecuredAction {
       implicit req => {

@@ -22,9 +22,10 @@ object IeslFrameBuild extends Build {
     
     "ws.securesocial" %% "securesocial" % "2.1.3",
 
-    "net.openreview" %% "scalate-core" % "latest.integration",
-    "net.openreview" %% "scalate-core-plus" % "latest.integration",
-    "net.openreview" %% "scalate-util" % "latest.integration",
+    //"net.openreview" %% "scalate-core" % "latest.integration",
+    //"net.openreview" %% "scalate-core-plus" % "latest.integration",
+    //"net.openreview" %% "scalate-util" % "latest.integration",
+    "com.scalatags" % "scalatags_2.10" % "0.2.4-JS",
 
     scalaCompiler() ,
     scalaIoFile() ,
