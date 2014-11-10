@@ -3,12 +3,11 @@ package lib
 import play.api.Application
 import play.api.cache.Cache
 import play.api.mvc._
-import com.typesafe.scalalogging.slf4j.Logging
 
 import securesocial.core._
 
 import net.sf.ehcache.{CacheManager, Element, Ehcache}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import org.joda.time.DateTime
 
 
@@ -50,25 +49,25 @@ import org.joda.time.DateTime
 
 
 
-class SecuresocialAuthenticatorStorePlugin(app: Application) extends AuthenticatorStore(app) with Logging {
-
-  def save(authenticator: Authenticator): Either[Error, Unit] = {
-    /// Cache.set(authenticator.id,authenticator)
-    // Right(())
-    Left(new Error(""))
-  }
-
-
-  def find(id: String): Either[Error, Option[Authenticator]] = {
-    // Right(Cache.getAs[Authenticator](id))
-    Left(new Error(""))
-  }
-  def delete(id: String): Either[Error, Unit] = {
-    // Cache.set(id, "", 1)
-    // Right(())
-    Left(new Error(""))
-  }
-}
+//class SecuresocialAuthenticatorStorePlugin(app: Application) extends AuthenticatorStore(app) with Logging {
+// 
+//  def save(authenticator: Authenticator): Either[Error, Unit] = {
+//    /// Cache.set(authenticator.id,authenticator)
+//    // Right(())
+//    Left(new Error(""))
+//  }
+// 
+// 
+//  def find(id: String): Either[Error, Option[Authenticator]] = {
+//    // Right(Cache.getAs[Authenticator](id))
+//    Left(new Error(""))
+//  }
+//  def delete(id: String): Either[Error, Unit] = {
+//    // Cache.set(id, "", 1)
+//    // Right(())
+//    Left(new Error(""))
+//  }
+//}
 
 //Authenticator(
 //  id             = , // : String,

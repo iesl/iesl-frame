@@ -2,7 +2,7 @@
 // 
 //import _root_.java.util.UUID
 //import play.api.Application
-//import com.typesafe.scalalogging.slf4j.Logging
+//import com.typesafe.scalalogging.{StrictLogging => Logging}
 // 
 //import play.i18n.Messages
 //import securesocial.core.providers.UsernamePasswordProvider

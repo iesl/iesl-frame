@@ -1,6 +1,6 @@
 package lib
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import play.api.Play.current
 import play.api.mvc._
 
@@ -10,58 +10,35 @@ import play.api.http.HeaderNames._
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.Results.Status
 import play.api.libs.json.JsValue
-import lib.ajax._
+// import lib.ajax._
+//object custom extends CustomHtmlTags
 
 
-import scalatags.{SeqModifier => _, _}
+// import scalatags._
+// import scalatags.Text.all._
 
-object custom extends CustomHtmlTags
+trait IFScalaTags
+    extends scalatags.Text.Util
+    with scalatags.Text.Cap
+    with scalatags.Text.Aggregate
+    with Logging  {
 
-//trait PrefixedHtmlTags extends Attrs with Styles with Tags with DataConverters with Logging {
-trait PrefixedHtmlTags extends Logging {
-  import scalatags._
-
-  val * = new Attrs with Styles with Tags {}
-
-}
-
-// trait CustomHtmlTags extends Attrs with Styles with Tags with DataConverters with Logging {
-trait CustomHtmlTags extends PrefixedHtmlTags {
   import scalaz.syntax.id._   // gives func syntax |>
-  import scalatags._
 
-  import *.{div, img, src}
+  // import scalatags.Text.{Tag, RawFrag, Modifier}
 
-  type HtmlTag = scalatags.HtmlTag
-  type Node = scalatags.Node
-  type Modifier = scalatags.Modifier
-
-  def raw = scalatags.raw _
-
-  case class IdAttr(name: String) extends Modifier {
-    def transform(tag: HtmlTag) =
-      tag(*.id := name)
+  import scalatags.Text.all.{
+    img, span, div, link, rel, `type`, `class`,
+    href, script, src, style
   }
 
-  case class Group(
-    xs: Node*
-  ) extends Node {
-    override def transform(tag: HtmlTag) = {
-      var newTag = tag
+  val * = scalatags.Text.all
 
-      var i = 0
-      while(i < xs.length){
-        newTag = xs(i).transform(newTag)
-        i += 1
-      }
-      newTag
-    }
-    override def writeTo(strb: StringBuilder): Unit = {}
-  }
+  // import *.{div}
 
-  implicit def scalaXmlAdapter(x: scala.xml.Node): RawNode = {
+  implicit def scalaXmlAdapter(x: scala.xml.Node): RawFrag = {
     val prettier = new scala.xml.PrettyPrinter(180, 4)
-    RawNode(prettier.format(x))
+    RawFrag(prettier.format(x))
   }
   
   def parseAttribs(as: String): List[Modifier] = {
@@ -85,31 +62,29 @@ trait CustomHtmlTags extends PrefixedHtmlTags {
 
 
   implicit class EnrichedString(s: String) {
-    def id = { if (s.startsWith("#")) sys.error("dont put a '#' in *.cl") else new IdAttr(s) } 
-    def cl = { if (s.startsWith(".")) sys.error("dont put a '.' in *.cl") else Cls(s) }
+    def id = { if (s.startsWith("#")) sys.error("dont put a '#' in cl") else *.id := s } 
+    def cl = { if (s.startsWith(".")) sys.error("dont put a '.' in cl") else *.cls := s }
+    def cls = `class` := s
     def atts = parseAttribs(s)
     def att = s.attr
 
 
     def t = s.tag
-    def d = *.div(atts:_*)
-    def p = *.p(atts:_*)
-    def sp = *.span(atts:_*)
+
+    def d = div(atts:_*)
+    // def p = p(atts:_*)
+    def sp = span(atts:_*)
   }
-
-
-  object noopNode extends Node {
-    override def transform(tag: HtmlTag) = tag
-    def writeTo(strb: StringBuilder): Unit = {}
-  }
-
 
   val assetsVersion = 16
 
   def cssV(s: String) = css(s"/assets/$assetsVersion/$s")
   def jsV(s: String) = js(s"/assets/$assetsVersion/$s")
+ 
 
-  implicit class EnrichedHtmlTag(t: HtmlTag) {
+  //implicit class EnrichedHtmlTag(val t: scalatags.Text.TypedTag[Nothing]) {
+  // implicit class EnrichedHtmlTag(val t: Tag) {
+  implicit class EnrichedHtmlTag(val t: scalatags.Text.tags.ConcreteHtmlTag[String]) {
     def control_label      =  ".control-label".atts      |> t.apply
     def control_group      =  ".control-group".atts      |> t.apply
     def control_group_inline= ".control-group-inline".atts      |> t.apply
@@ -216,8 +191,8 @@ trait CustomHtmlTags extends PrefixedHtmlTags {
 
   }
 
-  def css(p: String) = *.link(*.rel:="stylesheet", *.`type`:="text/css", *.href:=p)
-  def js(p: String) = *.script(*.src:=p)
+  def css(p: String) = link(rel:="stylesheet", `type`:="text/css", href:=p)
+  def js(p: String) = script(src:=p)
 
   //def rowF = div("row".attr:="row-fluid")
 
@@ -243,7 +218,7 @@ trait CustomHtmlTags extends PrefixedHtmlTags {
 
   def offset4 = ".offset4".d
 
-  def prettyFormat(t: HtmlTag): String = {
+  def prettyFormat(t: Tag): String = {
     val prettier = new scala.xml.PrettyPrinter(180, 4)
     prettier.format(scala.xml.XML.loadString(t.toString))
   }
@@ -289,22 +264,61 @@ trait CustomHtmlTags extends PrefixedHtmlTags {
   //  f(t)
   //}
 
-}
-
-
-trait DynamicViews extends CustomHtmlTags {
+//}
+// trait DynamicViews extends CustomHtmlTags { // with Text.Aggregate {
   import java.lang.reflect.Method
+  import java.util.UUID
 
-  import scalaz.syntax.id._
+  // import scalaz.syntax.id._
   // import custom._
   //import forms._
+
+  def globalArgs: Seq[(String, Any)]
+
+  def renderModelView(model: AnyRef, view: String, args:(String, Any)*): Frag = ???
+  // def renderModelView(model: AnyRef, view: String, args:(String, Any)*): scalatags.Text.Modifier = ??? //dynamicView(model, view, args.toSeq)
+  
+  def anyParam[T](p: String)(
+    implicit ps: Seq[(String, Any)]
+  ): Option[T] = {
+    (ps ++ globalArgs).filter(_._1==p).headOption.map(_._2.asInstanceOf[T])
+  }
+
+
+  def prefixParam(s:String) = "prefix" -> s
+  def idParam(s:String) = "id" -> s
+  def formUniqueIdParam(s:UUID) = "formUniqueId" -> s
+  def validateParam(s:Boolean) = "validate" -> s
+  def classAttrParam(s:Boolean) = "classatr" -> s
+ 
+ 
+  def prefixParam       (implicit ps: Seq[(String, Any)]) = anyParam[String]("prefix")
+  def idParam           (implicit ps: Seq[(String, Any)]) = anyParam[String]("id") 
+  def formUniqueIdParam (implicit ps: Seq[(String, Any)]) = anyParam[UUID]("formUniqId") 
+  def validateParam     (implicit ps: Seq[(String, Any)]) = anyParam[Boolean]("validate") 
+  def classAttrParam    (implicit ps: Seq[(String, Any)]) = anyParam[String]("classattr") 
+  def activeFilterParam (implicit ps: Seq[(String, Any)]) = anyParam[String]("activeFilter")
+
+
+  // TODO this user stuff can maybe be put in its on trait
+
+  import lib.IFUser
+
+  def userOpt(implicit args: Seq[(String, Any)]) : Option[IFUser[UUID]] = {
+    import lib.IFUser
+    anyParam[IFUser[UUID]]("user")
+  }
+
+  def userIsLoggedIn(implicit args: Seq[(String, Any)]) : Boolean = {
+    userOpt.isDefined
+  }
 
   def availableViewMethods(): Seq[Method] = {
     val allMethods = this.getClass.getMethods
     val meths = for {
       meth <- allMethods
       ptypes  = meth.getParameterTypes()
-      if meth.getReturnType == classOf[Node] && ptypes.lastOption.exists(classOf[Seq[(String, Any)]].isAssignableFrom(_))
+      if meth.getReturnType == classOf[scalatags.Text.Tag] && ptypes.lastOption.exists(classOf[Seq[(String, Any)]].isAssignableFrom(_))
     } yield {
       println(s"meth: ${meth.getName()}: ${ptypes.mkString(", ")}")
       meth
@@ -314,14 +328,22 @@ trait DynamicViews extends CustomHtmlTags {
 
   val availableMethods = availableViewMethods()
 
-  def dynamicView(model: AnyRef, viewName: String, args: Seq[(String, Any)]): Node = {
+
+  //// TODO why isn't this being picked up from the scalatags Util trait implicits?
+  //implicit def UnitNode(u: Unit) = new Modifier{
+  //  def applyTo(t: scalatags.text.Builder) = ()
+  //}
+
+  implicit def UnitTag(u: Unit) = scalatags.Text.TypedTag[String]("TODO: get rid of me", List[Seq[scalatags.Text.Modifier]]())
+
+  def dynamicView(model: AnyRef, viewName: String, args: Seq[(String, Any)]): Option[scalatags.Text.Tag] = {
     println(s"""dynamicView(${model}, ${viewName}, ${args}) """)
     import scala.collection.mutable.ListBuffer
 
     // build the list of supertypes for our model 
     val viewableClassList = new ListBuffer[Class[_]]()
     def buildViewableClassList(clazz: Class[_]): Unit = {
-      if (clazz != null && clazz != classOf[Object] && clazz != classOf[ScalaObject] && !viewableClassList.contains(clazz)) {
+      if (clazz != null && clazz != classOf[Object] && !viewableClassList.contains(clazz)) {
         viewableClassList.append(clazz);
         buildViewableClassList(clazz.getSuperclass)
         for (
@@ -352,8 +374,8 @@ trait DynamicViews extends CustomHtmlTags {
     }
     //_.invoke(this).asInstanceOf[Seq[(String, Any)] => Node].apply(args).asInstanceOf[Node]
     possibleMs.headOption.map(
-      _.invoke(this, model, args).asInstanceOf[Node]
-    ).getOrElse(noopNode)
+      _.invoke(this, model, args).asInstanceOf[scalatags.Text.Tag]
+    )
   }
 }
 
@@ -488,5 +510,5 @@ trait DynamicViews extends CustomHtmlTags {
 //    if (r.isEmpty) {
 //      println("ERROR: no suitable dynamic view found")
 //    }
-//    r.headOption.getOrElse(noopNode)
+//    r.headOption.getOrElse(Unit)
 //  }
